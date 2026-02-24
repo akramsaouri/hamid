@@ -14,21 +14,15 @@ Hamid spawns Claude Code sessions in your workspace, with a personality you defi
 
 ## What it does
 
-**Telegram bridge** — Send messages (text or voice) to your Telegram bot. Hamid spawns a Claude Code session, streams the response back, and keeps the session alive. Follow-up messages resume the same conversation, so context carries across messages without burning a new session each time.
+- **Telegram bridge** — Send messages (text or voice) to your Telegram bot. Hamid spawns a Claude Code session, streams the response back, and keeps the session alive. Follow-up messages resume the same conversation, so context carries across messages without burning a new session each time.
 
-**Persistent memory** — Hamid writes daily notes and a running context file. Each session reads these back, so it knows what you were working on yesterday, what your preferences are, and what decisions were already made.
+- **Persistent memory** — Hamid writes daily notes and a running context file. Each session reads these back, so it knows what you were working on yesterday, what your preferences are, and what decisions were already made.
 
-**Scheduled automations** — launchd jobs that run on a schedule and message you on Telegram:
+- **Scheduled automations** — launchd jobs that run on a schedule and message you on Telegram
 
-- **Daily briefing** — morning summary of your day
-- **Memory hygiene** — cleans up stale notes, keeps context.md focused
-- **TODO review** — checks your task list, flags forgotten items
-- **Permission hygiene** — consolidates Claude Code permission patterns
-- **Project patrol** — scans all your repos and Notion boards for open work
+- **Permission engine** — Controls what Claude Code is allowed to do. Bash commands, file access, MCP tools — all gated by configurable patterns.
 
-**Permission engine** — Controls what Claude Code is allowed to do. Bash commands, file access, MCP tools — all gated by configurable patterns.
-
-**Skills** — Reusable workflows defined as markdown files in `.claude/skills/`. Claude Code reads them when a task matches.
+- **Skills** — Reusable workflows defined as markdown files in `.claude/skills/`. Claude Code reads them when a task matches.
 
 ## How it works
 
