@@ -24,18 +24,14 @@ cp agent/.env.example agent/.env
 
 Edit `agent/.env`:
 
-| Variable                        | Required  | Description                                                                                                 |
-| ------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------- |
-| `TELEGRAM_BOT_TOKEN`            | Yes       | Create a bot via [@BotFather](https://t.me/BotFather), copy the token                                       |
-| `TELEGRAM_CHAT_ID`              | Yes       | Send a message to your bot, then `curl https://api.telegram.org/bot<TOKEN>/getUpdates` to find your chat ID |
-| `OPENAI_API_KEY`                | No        | Only needed for voice note transcription (Whisper)                                                          |
-| `CLAUDE_CODE_USE_VERTEX`        | If Vertex | Set to `1` to use Claude Code via Google Cloud                                                              |
-| `CLOUD_ML_REGION`               | If Vertex | Your GCP region                                                                                             |
-| `ANTHROPIC_VERTEX_PROJECT_ID`   | If Vertex | Your GCP project ID                                                                                         |
-| `VERTEX_REGION_CLAUDE_4_1_OPUS` | If Vertex | Region for Opus model (e.g. `global`)                                                                       |
-| `NOTION_TOKEN`                  | No        | Create an internal integration at [notion.so/my-integrations](https://www.notion.so/my-integrations)        |
-| `APPTWEAK_EMAIL`                | No        | Only for niche-research skill                                                                               |
-| `APPTWEAK_PASSWORD`             | No        | Only for niche-research skill                                                                               |
+| Variable             | Required | Description                                                                                                 |
+| -------------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
+| `TELEGRAM_BOT_TOKEN` | Yes      | Create a bot via [@BotFather](https://t.me/BotFather), copy the token                                       |
+| `TELEGRAM_CHAT_ID`   | Yes      | Send a message to your bot, then `curl https://api.telegram.org/bot<TOKEN>/getUpdates` to find your chat ID |
+| `OPENAI_API_KEY`     | No       | Only needed for voice note transcription (Whisper)                                                          |
+| `NOTION_TOKEN`       | No       | Create an internal integration at [notion.so/my-integrations](https://www.notion.so/my-integrations)        |
+
+The `.env.example` file includes additional variables for Vertex AI and AppTweak if you need them.
 
 ## 3. Define the agent's personality
 
