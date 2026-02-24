@@ -34,19 +34,8 @@ Hamid spawns Claude Code sessions in your workspace, with a personality you defi
 
 ```mermaid
 graph LR
-    U["You (Telegram)"] -->|text / voice| Bot
-    Schedule["launchd (cron)"] -->|briefing, hygiene, patrol| Bot
-
-    subgraph Your Mac
-        Bot["grammY Bot"]
-        Bot -->|spawn| CC["Claude Code"]
-        CC <-->|check| Perm["Permission Engine"]
-        CC -->|read| Soul["SOUL.md + CLAUDE.md"]
-        CC <-->|read/write| Mem["memory/"]
-        CC -->|use| Skills[".claude/skills/"]
-    end
-
-    CC -->|stream response| U
+    You["Telegram"] --> Bot["grammY Bot"] --> CC["Claude Code"] --> You
+    CC <--> Mem["memory/"]
 ```
 
 ## Getting started
