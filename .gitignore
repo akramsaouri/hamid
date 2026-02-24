@@ -16,3 +16,4 @@ docs/plans/*
 !docs/plans/.gitkeep
 services/*.plist
 !services/*.example.plist
+.claude/skills/niche-research/
