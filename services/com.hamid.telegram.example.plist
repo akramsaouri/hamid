@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Service identifier — must match the filename -->
+    <key>Label</key>
+    <string>com.hamid.telegram</string>
+
+    <!-- Node.js path (output of `which node`) and entry point -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>$HOME/.nvm/versions/node/v24.x.x/bin/node</string>
+        <string>$HOME/hamid/agent/packages/comm/dist/index.js</string>
+    </array>
+
+    <!-- Working directory — must be the root of your hamid clone -->
+    <key>WorkingDirectory</key>
+    <string>$HOME/hamid</string>
+
+    <!-- Start immediately when loaded, restart if it crashes -->
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+
+    <!-- Log paths -->
+    <key>StandardOutPath</key>
+    <string>$HOME/hamid/logs/telegram-stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>$HOME/hamid/logs/telegram-stderr.log</string>
+
+    <!-- Environment variables -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <!-- PATH must include node and standard bins -->
+        <key>PATH</key>
+        <string>$HOME/.nvm/versions/node/v24.x.x/bin:/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
+
+        <!-- Vertex AI config (skip if using Anthropic API directly) -->
+        <key>CLAUDE_CODE_USE_VERTEX</key>
+        <string>1</string>
+        <key>CLOUD_ML_REGION</key>
+        <string>your-region</string>
+        <key>ANTHROPIC_VERTEX_PROJECT_ID</key>
+        <string>your-gcp-project-id</string>
+        <key>VERTEX_REGION_CLAUDE_4_1_OPUS</key>
+        <string>global</string>
+    </dict>
+
+    <!--
+    For scheduled tasks (briefing, memory-hygiene, todo-review), replace
+    RunAtLoad + KeepAlive with StartCalendarInterval:
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>8</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    Entry points for scheduled tasks:
+    - briefing:          agent/packages/comm/dist/briefing-cli.js
+    - memory-hygiene:    agent/packages/comm/dist/memory-hygiene-cli.js
+    - todo-review:       agent/packages/comm/dist/todo-review-cli.js
+    - permission-hygiene: agent/packages/comm/dist/permission-hygiene-cli.js
+    - weekly-checkin:    agent/packages/comm/dist/weekly-checkin-cli.js
+    -->
+</dict>
+</plist>

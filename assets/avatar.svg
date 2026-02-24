@@ -1,0 +1,31 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#edeae5"/>
+  <g fill="none" stroke="#3d3d3d" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M174,260 Q172,185 195,150 Q220,120 256,115 Q292,120 317,150 Q340,185 338,260 Q336,315 310,340 Q288,358 256,360 Q224,358 202,340 Q176,315 174,260Z" stroke-width="5"/>
+    <path d="M174,255 Q160,248 158,262 Q156,278 172,280" stroke-width="4.5"/>
+    <path d="M338,255 Q352,248 354,262 Q356,278 340,280" stroke-width="4.5"/>
+    <path d="M186,186 Q186,152 208,134 Q230,118 256,116 Q282,118 304,134 Q326,152 326,186" stroke-width="5"/>
+    <path d="M184,186 Q220,194 256,196 Q292,194 328,186" stroke-width="5"/>
+    <path d="M215,155 L220,148 L225,155 L230,148 L235,155" stroke-width="3"/>
+    <path d="M277,155 L282,148 L287,155 L292,148 L297,155" stroke-width="3"/>
+    <path d="M246,140 L250,133 L254,140 L258,133 L262,140 L266,133" stroke-width="3"/>
+    <path d="M194,248 Q192,224 218,220 Q244,224 246,248 Q244,272 218,274 Q192,272 194,248Z" stroke-width="4.8"/>
+    <path d="M266,248 Q264,224 290,220 Q316,224 318,248 Q316,272 290,274 Q264,272 266,248Z" stroke-width="4.8"/>
+    <path d="M246,242 Q256,236 266,242" stroke-width="4"/>
+    <path d="M194,242 Q180,238 168,244" stroke-width="4"/>
+    <path d="M318,242 Q332,238 344,244" stroke-width="4"/>
+    <path d="M195,212 Q218,200 246,212" stroke-width="6"/>
+    <path d="M266,212 Q294,200 317,212" stroke-width="6"/>
+    <path d="M250,262 Q248,280 252,288 Q256,292 260,288 Q264,280 262,262" stroke-width="3.8"/>
+    <path d="M205,308 Q208,332 228,348 Q244,358 256,360 Q268,358 284,348 Q304,332 307,308" stroke-width="4.5"/>
+    <path d="M230,320 Q232,340 240,350" stroke-width="2.8"/>
+    <path d="M256,322 Q256,342 256,356" stroke-width="2.8"/>
+    <path d="M282,320 Q280,340 272,350" stroke-width="2.8"/>
+    <path d="M242,298 Q256,306 270,298" stroke-width="3.2"/>
+    <path d="M240,360 L237,395" stroke-width="4"/>
+    <path d="M272,360 L275,395" stroke-width="4"/>
+    <path d="M237,395 Q195,405 158,435" stroke-width="5"/>
+    <path d="M275,395 Q317,405 354,435" stroke-width="5"/>
+    <path d="M232,397 Q256,420 280,397" stroke-width="3.8"/>
+  </g>
+</svg>

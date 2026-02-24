@@ -1,0 +1,30 @@
+{
+  "name": "@hamid/comm",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "test": "vitest run",
+    "notify": "tsx src/notify-cli.ts",
+    "briefing": "tsx src/briefing-cli.ts",
+    "memory-hygiene": "tsx src/memory-hygiene-cli.ts",
+    "permission-hygiene": "tsx src/permission-hygiene-cli.ts",
+    "todo-review": "tsx src/todo-review-cli.ts",
+    "weekly-checkin": "tsx src/weekly-checkin-cli.ts"
+  },
+  "dependencies": {
+    "@hamid/core": "workspace:*",
+    "grammy": "^1.35.0",
+    "dotenv": "^16.4.0",
+    "openai": "^4.80.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "tsx": "^4.19.0",
+    "vitest": "^3.0.0"
+  }
+}
