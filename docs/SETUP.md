@@ -4,7 +4,7 @@
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
 - A Telegram bot token (from [@BotFather](https://t.me/BotFather))
-- _Optional_: Notion integration (for project-patrol skill)
+- _Optional_: Notion integration (for notion skills)
 - _Optional_: OpenAI API key (for voice note transcription via Whisper)
 
 ## 1. Clone and build
@@ -30,7 +30,6 @@ Edit `agent/.env`:
 | `TELEGRAM_CHAT_ID`   | Yes      | Send a message to your bot, then `curl https://api.telegram.org/bot<TOKEN>/getUpdates` to find your chat ID |
 | `OPENAI_API_KEY`     | No       | Only needed for voice note transcription (Whisper)                                                          |
 | `NOTION_TOKEN`       | No       | Create an internal integration at [notion.so/my-integrations](https://www.notion.so/my-integrations)        |
-
 
 ## 3. Define the agent's personality
 

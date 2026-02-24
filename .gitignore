@@ -17,3 +17,4 @@ docs/plans/*
 services/*.plist
 !services/*.example.plist
 .claude/skills/niche-research/
+.claude/skills/project-patrol/

@@ -14,7 +14,7 @@ Hamid spawns Claude Code sessions in your workspace, with a personality you defi
 
 ## What it does
 
-**Telegram bridge** — Send messages (text or voice) to your Telegram bot. Hamid spawns a Claude Code session, streams the response back, and shuts down.
+**Telegram bridge** — Send messages (text or voice) to your Telegram bot. Hamid spawns a Claude Code session, streams the response back, and keeps the session alive. Follow-up messages resume the same conversation, so context carries across messages without burning a new session each time.
 
 **Persistent memory** — Hamid writes daily notes and a running context file. Each session reads these back, so it knows what you were working on yesterday, what your preferences are, and what decisions were already made.
 
@@ -37,6 +37,10 @@ graph LR
     You["Telegram"] --> Bot["grammY Bot"] --> CC["Claude Code"] --> You
     CC <--> Mem["memory/"]
 ```
+
+## Heads up
+
+Every message you send and every scheduled automation spawns a Claude Code session. With several automations running daily, usage adds up fast. Keep an eye on your Claude Code / API usage, especially while tuning schedules.
 
 ## Getting started
 
