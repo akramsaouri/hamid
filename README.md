@@ -14,7 +14,7 @@ Hamid spawns Claude Code sessions in your workspace, with a personality you defi
 
 ## What it does
 
-**Telegram bridge** — Send messages (text or voice) to your Telegram bot. Hamid spawns a Claude Code session, streams the response back, and shuts down. Your files, your machine, no data leaves.
+**Telegram bridge** — Send messages (text or voice) to your Telegram bot. Hamid spawns a Claude Code session, streams the response back, and shuts down.
 
 **Persistent memory** — Hamid writes daily notes and a running context file. Each session reads these back, so it knows what you were working on yesterday, what your preferences are, and what decisions were already made.
 
