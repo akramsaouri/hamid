@@ -1,6 +1,10 @@
-# Hamid
+<p align="center">
+  <img src="assets/avatar.png" width="140" />
+</p>
 
-A personal AI agent that runs locally. Claude Code sessions bridged to Telegram, with scheduled automations, a permission engine, and persistent memory. Everything stays on your machine.
+<h1 align="center">Hamid</h1>
+
+<p align="center">A personal AI agent that runs locally.<br>Claude Code sessions bridged to Telegram, with scheduled automations, a permission engine, and persistent memory.<br>Everything stays on your machine.</p>
 
 ## Architecture
 
