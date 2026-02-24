@@ -35,16 +35,6 @@
         <!-- PATH must include node and standard bins -->
         <key>PATH</key>
         <string>$HOME/.nvm/versions/node/v24.x.x/bin:/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
-
-        <!-- Vertex AI config (skip if using Anthropic API directly) -->
-        <key>CLAUDE_CODE_USE_VERTEX</key>
-        <string>1</string>
-        <key>CLOUD_ML_REGION</key>
-        <string>your-region</string>
-        <key>ANTHROPIC_VERTEX_PROJECT_ID</key>
-        <string>your-gcp-project-id</string>
-        <key>VERTEX_REGION_CLAUDE_4_1_OPUS</key>
-        <string>global</string>
     </dict>
 
     <!--
