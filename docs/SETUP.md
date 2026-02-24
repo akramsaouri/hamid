@@ -31,7 +31,7 @@ Edit `agent/.env`:
 | `OPENAI_API_KEY`     | No       | Only needed for voice note transcription (Whisper)                                                          |
 | `NOTION_TOKEN`       | No       | Create an internal integration at [notion.so/my-integrations](https://www.notion.so/my-integrations)        |
 
-The `.env.example` file includes additional variables for Vertex AI and AppTweak if you need them.
+The `.env.example` file includes additional variables for Vertex AI if you need them.
 
 ## 3. Define the agent's personality
 
