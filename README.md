@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/avatar.png" width="140" />
+  <img src="assets/avatar.svg" width="140" />
 </p>
 
 <h1 align="center">Hamid</h1>
