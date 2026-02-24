@@ -30,15 +30,23 @@ Hamid spawns Claude Code sessions in your workspace, with a personality you defi
 
 **Skills** — Reusable workflows defined as markdown files in `.claude/skills/`. Claude Code reads them when a task matches.
 
-## Message flow
+## How it works
 
-```
-Telegram message
-  -> grammY bot (agent/packages/comm)
-  -> spawns Claude Code session
-  -> permission engine checks allowed tools/commands
-  -> Claude Code executes with SOUL.md personality + CLAUDE.md instructions
-  -> streams response back to Telegram
+```mermaid
+graph LR
+    U["You (Telegram)"] -->|text / voice| Bot
+    Schedule["launchd (cron)"] -->|briefing, hygiene, patrol| Bot
+
+    subgraph Your Mac
+        Bot["grammY Bot"]
+        Bot -->|spawn| CC["Claude Code"]
+        CC <-->|check| Perm["Permission Engine"]
+        CC -->|read| Soul["SOUL.md + CLAUDE.md"]
+        CC <-->|read/write| Mem["memory/"]
+        CC -->|use| Skills[".claude/skills/"]
+    end
+
+    CC -->|stream response| U
 ```
 
 ## Getting started
