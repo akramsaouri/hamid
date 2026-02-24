@@ -31,7 +31,6 @@ Edit `agent/.env`:
 | `OPENAI_API_KEY`     | No       | Only needed for voice note transcription (Whisper)                                                          |
 | `NOTION_TOKEN`       | No       | Create an internal integration at [notion.so/my-integrations](https://www.notion.so/my-integrations)        |
 
-The `.env.example` file includes additional variables for Vertex AI if you need them.
 
 ## 3. Define the agent's personality
 
@@ -81,7 +80,6 @@ Edit the plist — replace all `$HOME` placeholders with actual paths:
 - Node.js path (output of `which node`)
 - Working directory (path to your hamid clone)
 - Log paths
-- Vertex AI environment variables (if applicable)
 
 Install and start:
 
