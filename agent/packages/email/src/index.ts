@@ -28,3 +28,6 @@ export { matchRule, evaluateRules } from "./rules.js";
 export { isAccountDue } from "./schedule.js";
 
 export { judgeEmail } from "./judge.js";
+
+export { createEmailTodo } from "./notion-todo.js";
+export type { TodoInput } from "./notion-todo.js";
