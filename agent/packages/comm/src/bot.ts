@@ -1,7 +1,7 @@
 import { Bot } from "grammy";
 import { execSync } from "node:child_process";
 import { existsSync, readFileSync, unlinkSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { createHamidSession, type PermissionDecision } from "@hamid/core";
 import { TelegramRenderer } from "./renderer.js";
 import { loadState, saveState, isSessionExpired, type DaemonState } from "./state.js";
@@ -169,6 +169,66 @@ export function createBot(cfg: CommConfig): Bot {
       log(`Briefing error: ${msg}`);
       await ctx.reply(`Briefing failed: ${msg}`);
     }
+  });
+
+  // /email command — on-demand email triage
+  bot.command("email", async (ctx) => {
+    if (String(ctx.chat.id) !== cfg.telegramChatId) return;
+
+    const accountFilter = ctx.match?.trim() || undefined;
+    log(`Email triage requested${accountFilter ? ` (account: ${accountFilter})` : ""}`);
+    const statusMsg = await ctx.reply("Checking email...");
+
+    (async () => {
+      try {
+        const agentDir = resolve(cfg.workspaceDir, "agent");
+
+        // Dynamic imports to avoid circular dependency with @hamid/email
+        const configPath = resolve(agentDir, "config", "email-rules.js");
+        const triagePath = resolve(agentDir, "packages", "email", "dist", "triage.js");
+
+        const { config } = (await import(configPath)) as { config: unknown };
+        const { runTriage } = (await import(triagePath)) as {
+          runTriage: (config: unknown, options: Record<string, unknown>) => Promise<string>;
+        };
+
+        const notionToken = process.env.NOTION_TOKEN;
+        const notionDatabaseId = process.env.NOTION_EMAIL_TODOS_DB;
+
+        if (!notionToken || !notionDatabaseId) {
+          await bot.api.editMessageText(
+            cfg.telegramChatId,
+            statusMsg.message_id,
+            "Missing NOTION_TOKEN or NOTION_EMAIL_TODOS_DB"
+          );
+          return;
+        }
+
+        const summary = await runTriage(config, {
+          agentDir,
+          workspaceDir: cfg.workspaceDir,
+          notionToken,
+          notionDatabaseId,
+          accountFilter,
+          forceRun: true,
+        });
+
+        const reply = summary || "No new emails.";
+        await bot.api.editMessageText(
+          cfg.telegramChatId,
+          statusMsg.message_id,
+          reply
+        );
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        log(`Email triage error: ${msg}`);
+        await bot.api.editMessageText(
+          cfg.telegramChatId,
+          statusMsg.message_id,
+          `Email triage failed: ${msg}`
+        );
+      }
+    })();
   });
 
   // /start command — greeting
