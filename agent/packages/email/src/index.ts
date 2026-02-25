@@ -33,3 +33,7 @@ export { createEmailTodo } from "./notion-todo.js";
 export type { TodoInput } from "./notion-todo.js";
 
 export { formatTriageSummary } from "./summary.js";
+
+export { runTriage } from "./triage.js";
+export type { TriageOptions } from "./triage.js";
+export { loadEmailState, saveEmailState } from "./state.js";
