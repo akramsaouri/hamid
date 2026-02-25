@@ -4,3 +4,6 @@ dist/
 .state.json
 .goal-review.json
 config/gmail-credentials.json
+config/*.js
+config/*.js.map
+config/*.d.ts
