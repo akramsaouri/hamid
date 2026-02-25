@@ -4,13 +4,22 @@
 
 <h1 align="center">Hamid</h1>
 
-<p align="center">A personal AI agent that runs locally.<br>Claude Code sessions bridged to Telegram, with scheduled automations, a permission engine, and persistent memory.<br>Everything stays on your machine.</p>
+<table>
+<tr>
+<td>
 
-## What is this
+A personal AI agent that runs locally. Claude Code sessions bridged to Telegram, with scheduled automations, a permission engine, and persistent memory. Everything stays on your machine.
 
 Hamid is a framework for running a persistent AI agent on your Mac. You talk to it through Telegram. It talks back through Claude Code.
 
 Hamid spawns Claude Code sessions in your workspace, with a personality you define (`SOUL.md`), project instructions it follows (`CLAUDE.md`), and memory it writes to disk so the next session isn't starting from zero.
+
+</td>
+<td>
+<img src="assets/conversation.png" width="600" />
+</td>
+</tr>
+</table>
 
 ## What it does
 
