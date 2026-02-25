@@ -16,8 +16,9 @@
   "dependencies": {
     "@hamid/core": "workspace:*",
     "@hamid/notion": "workspace:*",
-    "googleapis": "^144.0.0",
-    "cron-parser": "^5.0.0"
+    "cron-parser": "^5.0.0",
+    "google-auth-library": "9.15.1",
+    "googleapis": "^144.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

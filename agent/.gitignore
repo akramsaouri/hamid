@@ -3,3 +3,4 @@ dist/
 .env
 .state.json
 .goal-review.json
+config/gmail-credentials.json
