@@ -26,3 +26,5 @@ export { GmailClient } from "./gmail.js";
 export { matchRule, evaluateRules } from "./rules.js";
 
 export { isAccountDue } from "./schedule.js";
+
+export { judgeEmail } from "./judge.js";
