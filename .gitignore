@@ -16,6 +16,7 @@ docs/plans/*
 !docs/plans/.gitkeep
 services/*.plist
 !services/*.example.plist
+!services/com.hamid.email-triage.plist
 .claude/skills/niche-research/
 .claude/skills/project-patrol/
 .worktrees/
