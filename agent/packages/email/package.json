@@ -1,0 +1,27 @@
+{
+  "name": "@hamid/email",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "auth": "node dist/auth-cli.js",
+    "triage": "node dist/triage-cli.js"
+  },
+  "dependencies": {
+    "@hamid/core": "workspace:*",
+    "@hamid/notion": "workspace:*",
+    "googleapis": "^144.0.0",
+    "cron-parser": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}
