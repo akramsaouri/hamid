@@ -31,3 +31,5 @@ export { judgeEmail } from "./judge.js";
 
 export { createEmailTodo } from "./notion-todo.js";
 export type { TodoInput } from "./notion-todo.js";
+
+export { formatTriageSummary } from "./summary.js";
