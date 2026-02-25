@@ -20,3 +20,5 @@ export {
   getAuthenticatedClient,
 } from "./gmail-auth.js";
 export type { GmailCredentials, GmailTokens } from "./gmail-auth.js";
+
+export { GmailClient } from "./gmail.js";
