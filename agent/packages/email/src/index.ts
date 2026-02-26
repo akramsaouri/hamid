@@ -29,8 +29,8 @@ export { isAccountDue } from "./schedule.js";
 
 export { judgeEmail } from "./judge.js";
 
-export { createEmailTodo } from "./notion-todo.js";
-export type { TodoInput } from "./notion-todo.js";
+export { createEmailReminder } from "./reminders-todo.js";
+export type { TodoInput } from "./reminders-todo.js";
 
 export { formatTriageSummary } from "./summary.js";
 

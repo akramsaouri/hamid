@@ -9,7 +9,7 @@
     <!-- Node.js path (output of `which node`) and entry point -->
     <key>ProgramArguments</key>
     <array>
-        <string>$HOME/.nvm/versions/node/v24.x.x/bin/node</string>
+        <string>$HOME/.local/share/fnm/node-versions/v24.x.x/installation/bin/node</string>
         <string>$HOME/hamid/agent/packages/comm/dist/index.js</string>
     </array>
 
@@ -34,7 +34,7 @@
     <dict>
         <!-- PATH must include node and standard bins -->
         <key>PATH</key>
-        <string>$HOME/.nvm/versions/node/v24.x.x/bin:/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
+        <string>$HOME/.local/share/fnm/node-versions/v24.x.x/installation/bin:/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
     </dict>
 
     <!--

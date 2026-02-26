@@ -14,27 +14,7 @@ export class GmailClient {
   async fetchUnread(maxResults = 50): Promise<GmailMessage[]> {
     const res = await this.gmail.users.messages.list({
       userId: "me",
-      q: "is:unread",
-      maxResults,
-    });
-
-    if (!res.data.messages?.length) return [];
-
-    const messages = await Promise.all(
-      res.data.messages.map((m) => this.getMessage(m.id!))
-    );
-
-    return messages.filter((m): m is GmailMessage => m !== null);
-  }
-
-  async fetchSince(
-    afterTimestamp: Date,
-    maxResults = 100
-  ): Promise<GmailMessage[]> {
-    const epochSeconds = Math.floor(afterTimestamp.getTime() / 1000);
-    const res = await this.gmail.users.messages.list({
-      userId: "me",
-      q: `after:${epochSeconds}`,
+      q: "is:unread in:inbox",
       maxResults,
     });
 

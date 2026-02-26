@@ -1,5 +1,5 @@
 import { runTriage } from "./triage.js";
-import type { EmailConfig } from "./types.js";
+import { loadConfig } from "./config.js";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { config as dotenvConfig } from "dotenv";
@@ -11,33 +11,28 @@ const agentDir = resolve(__dirname, "..", "..", "..");
 dotenvConfig({ path: resolve(agentDir, ".env") });
 
 async function main() {
-  // Dynamic import — use computed path so TypeScript doesn't try to compile
-  // the config file (which is outside this package's rootDir)
-  const configPath = resolve(agentDir, "config", "email-rules.js");
-  const { config } = (await import(configPath)) as { config: EmailConfig };
 
   const accountFilter = process.argv[2]?.startsWith("--")
     ? undefined
     : process.argv[2];
   const forceRun = process.argv.includes("--force");
+  const dryRun = process.argv.includes("--dry-run");
 
-  const notionToken = process.env.NOTION_TOKEN;
-  const notionDatabaseId = process.env.NOTION_EMAIL_TODOS_DB;
   const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
   const telegramChatId = process.env.TELEGRAM_CHAT_ID;
 
-  if (!notionToken || !notionDatabaseId) {
-    console.error("Missing NOTION_TOKEN or NOTION_EMAIL_TODOS_DB in .env");
-    process.exit(1);
+  if (dryRun) {
+    console.log("DRY RUN — no actions will be executed\n");
   }
+
+  const config = loadConfig();
 
   const summary = await runTriage(config, {
     agentDir,
     workspaceDir: resolve(agentDir, ".."),
-    notionToken,
-    notionDatabaseId,
     accountFilter,
     forceRun,
+    dryRun,
   });
 
   if (!summary) {
@@ -47,8 +42,8 @@ async function main() {
 
   console.log(summary);
 
-  // Send to Telegram
-  if (telegramToken && telegramChatId) {
+  // Send to Telegram (skip in dry run)
+  if (!dryRun && telegramToken && telegramChatId) {
     const commNotifyPath = resolve(
       agentDir,
       "packages",

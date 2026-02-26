@@ -2,7 +2,7 @@ import { GmailClient } from "./gmail.js";
 import { loadCredentials, getAuthenticatedClient } from "./gmail-auth.js";
 import { evaluateRules } from "./rules.js";
 import { judgeEmail } from "./judge.js";
-import { createEmailTodo } from "./notion-todo.js";
+import { createEmailReminder } from "./reminders-todo.js";
 import { isAccountDue } from "./schedule.js";
 import { loadEmailState, saveEmailState } from "./state.js";
 import { formatTriageSummary } from "./summary.js";
@@ -17,24 +17,16 @@ import {
 export interface TriageOptions {
   agentDir: string;
   workspaceDir: string;
-  notionToken: string;
-  notionDatabaseId: string;
   accountFilter?: string;
   forceRun?: boolean;
+  dryRun?: boolean;
 }
 
 export async function runTriage(
   config: EmailConfig,
   options: TriageOptions
 ): Promise<string> {
-  const {
-    agentDir,
-    workspaceDir,
-    notionToken,
-    notionDatabaseId,
-    accountFilter,
-    forceRun,
-  } = options;
+  const { agentDir, workspaceDir, accountFilter, forceRun, dryRun } = options;
 
   const creds = loadCredentials(agentDir);
   const state = loadEmailState(agentDir);
@@ -55,35 +47,33 @@ export async function runTriage(
       accountName,
       account,
       creds,
-      lastChecked,
-      notionToken,
-      notionDatabaseId,
-      workspaceDir
+      workspaceDir,
+      dryRun
     );
 
     sweepResults.push(sweepResult);
 
-    state.accounts[accountName] = {
-      lastCheckedAt: new Date().toISOString(),
-    };
-    saveEmailState(agentDir, state);
+    if (!dryRun) {
+      state.accounts[accountName] = {
+        lastCheckedAt: new Date().toISOString(),
+      };
+      saveEmailState(agentDir, state);
+    }
   }
 
   if (sweepResults.length === 0) {
     return "";
   }
 
-  return formatTriageSummary(sweepResults);
+  return formatTriageSummary(sweepResults, dryRun);
 }
 
 async function sweepAccount(
   accountName: string,
   account: EmailAccount,
   creds: ReturnType<typeof loadCredentials>,
-  lastChecked: string | null,
-  notionToken: string,
-  notionDatabaseId: string,
-  workspaceDir: string
+  workspaceDir: string,
+  dryRun?: boolean
 ): Promise<TriageSweepResult> {
   const result: TriageSweepResult = {
     account: accountName,
@@ -104,9 +94,7 @@ async function sweepAccount(
     const auth = getAuthenticatedClient(creds, refreshToken);
     const gmail = new GmailClient(auth, account.address);
 
-    const messages = lastChecked
-      ? await gmail.fetchSince(new Date(lastChecked))
-      : await gmail.fetchUnread();
+    const messages = await gmail.fetchUnread();
 
     for (const message of messages) {
       try {
@@ -127,17 +115,11 @@ async function sweepAccount(
           decision,
         };
 
-        const actions = decision.actions || [decision.action];
-
-        for (const action of actions) {
-          await executeAction(
-            action,
-            gmail,
-            message,
-            triaged,
-            notionToken,
-            notionDatabaseId
-          );
+        if (!dryRun) {
+          const actions = decision.actions || [decision.action];
+          for (const action of actions) {
+            await executeAction(action, gmail, message, triaged);
+          }
         }
 
         result.results.push(triaged);
@@ -160,9 +142,7 @@ async function executeAction(
   action: string,
   gmail: GmailClient,
   message: GmailMessage,
-  triaged: TriagedEmail,
-  notionToken: string,
-  notionDatabaseId: string
+  triaged: TriagedEmail
 ): Promise<void> {
   switch (action) {
     case "trash":
@@ -171,7 +151,7 @@ async function executeAction(
 
     case "create_todo": {
       const gmailLink = await gmail.getGmailLink(message.id);
-      await createEmailTodo(notionToken, notionDatabaseId, {
+      await createEmailReminder({
         message,
         account: triaged.account,
         decision: triaged.decision,

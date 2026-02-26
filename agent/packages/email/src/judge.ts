@@ -4,8 +4,8 @@ import { GmailMessage, EmailAccount, TriageDecision } from "./types.js";
 const JUDGE_PROMPT = `You are an email triage assistant. Your job is to classify emails into one of four actions:
 
 - **trash**: Marketing, newsletters, automated notifications, spam, promotional content. Exception: keep emails about significant discounts or deals.
-- **create_todo**: Emails that require action — invoices, requests, deadlines, approvals, tasks.
-- **notify**: Emails from customers, users, or important contacts that need attention but aren't a specific task.
+- **create_todo**: Emails that require action — invoices, requests, deadlines, approvals, tasks, bug reports, user feedback, support requests.
+- **notify**: Emails from important contacts that are FYI only — no action required from the recipient, just awareness.
 - **skip**: Informational emails that don't need action or deletion — receipts, confirmations, FYI threads.
 
 You must respond with ONLY a JSON object, no other text:

@@ -184,31 +184,17 @@ export function createBot(cfg: CommConfig): Bot {
         const agentDir = resolve(cfg.workspaceDir, "agent");
 
         // Dynamic imports to avoid circular dependency with @hamid/email
-        const configPath = resolve(agentDir, "config", "email-rules.js");
+        const configPath = resolve(agentDir, "packages", "email", "dist", "config.js");
         const triagePath = resolve(agentDir, "packages", "email", "dist", "triage.js");
 
-        const { config } = (await import(configPath)) as { config: unknown };
+        const { loadConfig } = (await import(configPath)) as { loadConfig: () => unknown };
         const { runTriage } = (await import(triagePath)) as {
           runTriage: (config: unknown, options: Record<string, unknown>) => Promise<string>;
         };
 
-        const notionToken = process.env.NOTION_TOKEN;
-        const notionDatabaseId = process.env.NOTION_EMAIL_TODOS_DB;
-
-        if (!notionToken || !notionDatabaseId) {
-          await bot.api.editMessageText(
-            cfg.telegramChatId,
-            statusMsg.message_id,
-            "Missing NOTION_TOKEN or NOTION_EMAIL_TODOS_DB"
-          );
-          return;
-        }
-
-        const summary = await runTriage(config, {
+        const summary = await runTriage(loadConfig(), {
           agentDir,
           workspaceDir: cfg.workspaceDir,
-          notionToken,
-          notionDatabaseId,
           accountFilter,
           forceRun: true,
         });

@@ -16,7 +16,6 @@
   "dependencies": {
     "@hamid/comm": "workspace:*",
     "@hamid/core": "workspace:*",
-    "@hamid/notion": "workspace:*",
     "cron-parser": "^5.0.0",
     "dotenv": "^16.6.1",
     "google-auth-library": "9.15.1",

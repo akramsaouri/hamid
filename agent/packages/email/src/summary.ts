@@ -1,6 +1,9 @@
 import { TriageSweepResult, TriagedEmail } from "./types.js";
 
-export function formatTriageSummary(sweeps: TriageSweepResult[]): string {
+export function formatTriageSummary(
+  sweeps: TriageSweepResult[],
+  verbose = false
+): string {
   const accountsSwept = sweeps.length;
   const lines: string[] = [
     `Email Triage (${accountsSwept} account${accountsSwept === 1 ? "" : "s"} swept)\n`,
@@ -45,15 +48,33 @@ export function formatTriageSummary(sweeps: TriageSweepResult[]): string {
 
     // Trashed
     if (grouped.trash.length > 0) {
-      const senders = grouped.trash
-        .map((e) => extractSenderName(e.message.from))
-        .join(", ");
-      lines.push(`  🗑 Trashed: ${grouped.trash.length} (${senders})`);
+      if (verbose) {
+        for (const email of grouped.trash) {
+          const tag = email.decision.source === "ai" ? " [AI]" : " [rule]";
+          lines.push(
+            `  🗑 Trash: "${email.message.subject}" from ${extractSenderName(email.message.from)}${tag}`
+          );
+        }
+      } else {
+        const senders = grouped.trash
+          .map((e) => extractSenderName(e.message.from))
+          .join(", ");
+        lines.push(`  🗑 Trashed: ${grouped.trash.length} (${senders})`);
+      }
     }
 
     // Skipped
     if (grouped.skip.length > 0) {
-      lines.push(`  ⏭ Skipped: ${grouped.skip.length} (no action needed)`);
+      if (verbose) {
+        for (const email of grouped.skip) {
+          const tag = email.decision.source === "ai" ? " [AI]" : " [rule]";
+          lines.push(
+            `  ⏭ Skip: "${email.message.subject}" from ${extractSenderName(email.message.from)}${tag}`
+          );
+        }
+      } else {
+        lines.push(`  ⏭ Skipped: ${grouped.skip.length} (no action needed)`);
+      }
     }
 
     lines.push("");
