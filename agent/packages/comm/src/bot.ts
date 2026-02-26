@@ -245,6 +245,62 @@ export function createBot(cfg: CommConfig): Bot {
     })();
   });
 
+  // /memory_hygiene command — on-demand memory maintenance
+  bot.command("memory_hygiene", async (ctx) => {
+    if (String(ctx.chat.id) !== cfg.telegramChatId) return;
+    log("Memory hygiene requested via /memory_hygiene");
+    const statusMsg = await ctx.reply("Running memory hygiene...");
+
+    (async () => {
+      try {
+        const { runMemoryHygiene } = await import("./memory-hygiene.js");
+        const summary = await runMemoryHygiene(cfg.workspaceDir);
+
+        await bot.api.editMessageText(
+          cfg.telegramChatId,
+          statusMsg.message_id,
+          summary || "Memory hygiene completed — no changes."
+        );
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        log(`Memory hygiene error: ${msg}`);
+        await bot.api.editMessageText(
+          cfg.telegramChatId,
+          statusMsg.message_id,
+          `Memory hygiene failed: ${msg}`
+        );
+      }
+    })();
+  });
+
+  // /permission_hygiene command — on-demand permission cleanup
+  bot.command("permission_hygiene", async (ctx) => {
+    if (String(ctx.chat.id) !== cfg.telegramChatId) return;
+    log("Permission hygiene requested via /permission_hygiene");
+    const statusMsg = await ctx.reply("Running permission hygiene...");
+
+    (async () => {
+      try {
+        const { runPermissionHygiene } = await import("./permission-hygiene.js");
+        const summary = await runPermissionHygiene(cfg.workspaceDir);
+
+        await bot.api.editMessageText(
+          cfg.telegramChatId,
+          statusMsg.message_id,
+          summary || "Permission hygiene completed — no changes."
+        );
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        log(`Permission hygiene error: ${msg}`);
+        await bot.api.editMessageText(
+          cfg.telegramChatId,
+          statusMsg.message_id,
+          `Permission hygiene failed: ${msg}`
+        );
+      }
+    })();
+  });
+
   // /start command — greeting
   bot.command("start", async (ctx) => {
     if (String(ctx.chat.id) !== cfg.telegramChatId) return;
