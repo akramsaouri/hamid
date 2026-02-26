@@ -217,6 +217,34 @@ export function createBot(cfg: CommConfig): Bot {
     })();
   });
 
+  // /todo-review command — on-demand TODO review
+  bot.command("todo_review", async (ctx) => {
+    if (String(ctx.chat.id) !== cfg.telegramChatId) return;
+    log("TODO review requested via /todo_review");
+    const statusMsg = await ctx.reply("Running TODO review...");
+
+    (async () => {
+      try {
+        const { runTodoReview } = await import("./todo-review.js");
+        const summary = await runTodoReview(cfg.workspaceDir);
+
+        await bot.api.editMessageText(
+          cfg.telegramChatId,
+          statusMsg.message_id,
+          summary || "TODO review completed — no changes."
+        );
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        log(`TODO review error: ${msg}`);
+        await bot.api.editMessageText(
+          cfg.telegramChatId,
+          statusMsg.message_id,
+          `TODO review failed: ${msg}`
+        );
+      }
+    })();
+  });
+
   // /start command — greeting
   bot.command("start", async (ctx) => {
     if (String(ctx.chat.id) !== cfg.telegramChatId) return;
