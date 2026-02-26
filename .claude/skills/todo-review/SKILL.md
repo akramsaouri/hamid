@@ -47,10 +47,10 @@ Scan for untracked work:
 
 Be conservative. Only add items that matter enough to track.
 
-### 4. Update and commit
+### 4. Update TODO.md
 
 Edit TODO.md with changes. Do not reorder, rephrase, or remove existing items.
-If changes were made, commit: "Update TODO.md: mark completed, add new items"
+TODO.md is not git-tracked — do not attempt to commit it.
 
 ## Rules
 

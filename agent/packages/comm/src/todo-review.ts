@@ -79,7 +79,7 @@ const READ_ONLY_PREFIXES = [
 
 const SYSTEM_PROMPT = `You are Hamid, running a scheduled TODO review.
 
-Your job: read TODO.md, verify each unchecked item against the actual workspace state, mark completed items, discover new TODO-worthy items, add them, and commit.
+Your job: read TODO.md, verify each unchecked item against the actual workspace state, mark completed items, discover new TODO-worthy items, and add them.
 
 ## Process
 
@@ -112,12 +112,9 @@ Use Edit to update the file. Only change check states and add new items.
 Do NOT reorder, rephrase, or remove existing items.
 Do NOT add metadata, dates, categories, or headings beyond what already exists.
 
-### 5. Commit
-If any changes were made, commit with message: "Update TODO.md: mark completed, add new items"
-Do NOT include "Co-Authored-By" in the commit message.
-If nothing changed, skip the commit.
+Note: TODO.md is NOT git-tracked (it's in .gitignore). Do NOT attempt to git add or commit it.
 
-### 6. Output summary
+### 5. Output summary
 Write a concise plain-text summary:
 - Items marked as done (and what evidence confirmed them)
 - New items added (and why)
@@ -130,7 +127,8 @@ No markdown formatting. Plain text only.
 - You are READ-ONLY for the workspace. You may NOT write code, fix bugs, or create files other than editing TODO.md.
 - Only edit TODO.md. Nothing else.
 - Only run read-only Bash commands (ls, cat, head, tail, git log, git status, git diff, git show, which, file, wc, etc.)
-- Do NOT run: rm, mv, cp, mkdir, npm/pnpm install, git push, or any command that modifies files (except git add/commit for TODO.md changes)
+- Do NOT run: rm, mv, cp, mkdir, npm/pnpm install, git push, or any command that modifies files
+- TODO.md is NOT git-tracked. Do NOT run git add or git commit.
 - Be conservative with new items. If in doubt, don't add it.`;
 
 export async function runTodoReview(workspaceDir: string): Promise<string> {
@@ -148,7 +146,7 @@ export async function runTodoReview(workspaceDir: string): Promise<string> {
     "=== RECENT MEMORY (context on what's been happening) ===",
     recentContext,
     "",
-    "Run the TODO review now. Check each item, update TODO.md, commit if changed, and output a summary.",
+    "Run the TODO review now. Check each item, update TODO.md if needed, and output a summary.",
   ].join("\n");
 
   const session = createHamidSession({
@@ -167,17 +165,9 @@ export async function runTodoReview(workspaceDir: string): Promise<string> {
           return { behavior: "allow" };
         }
 
-        // Allow committing TODO.md changes
-        if (cmd.startsWith("git add") && cmd.includes("TODO.md")) {
-          return { behavior: "allow" };
-        }
-        if (cmd.startsWith("git commit")) {
-          return { behavior: "allow" };
-        }
-
         return {
           behavior: "deny",
-          message: "Only read-only commands and git commit for TODO.md allowed",
+          message: "Only read-only commands allowed in TODO review mode",
         };
       }
 
