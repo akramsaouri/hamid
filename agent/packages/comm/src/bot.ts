@@ -44,8 +44,8 @@ Rules:
 - Walk through each active goal ONE AT A TIME
 - For each goal: ask about progress, discuss blockers, define 2-3 concrete next actions
 - For stalled goals: gently probe why ("What's been getting in the way?"), let Sat decide priority
-- After discussing each goal, write next actions as to_do blocks to the goal's Notion page
-  using bash: echo '{"page_id":"<goal-page-id>","blocks":[{"type":"to_do","content":"<action>","checked":false}]}' | pnpm --filter @hamid/notion notion append
+- Before discussing each goal, check last week's actions: use the Apple Reminders MCP (search_reminders) to find reminders whose notes contain the goal name. Note which are completed vs. still open — use this to ground the conversation.
+- After discussing each goal, create an Apple Reminder for each next action using the Apple Reminders MCP (create_reminder in the "Tasks" list, due date next Monday). Include "Goal: <goal-name>" in the reminder notes so next week's review can find them.
 - Update Status property via Notion MCP (patch-page) if Sat says it changed
 - When all goals are reviewed, delete the marker file with: rm agent/.goal-review.json
   Then give a brief summary of what was committed to this week
