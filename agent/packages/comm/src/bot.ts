@@ -2,17 +2,14 @@ import { Bot } from "grammy";
 import { execSync } from "node:child_process";
 import { existsSync, readFileSync, unlinkSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { createHamidSession, type PermissionDecision } from "@hamid/core";
+import { createHamidSession, createLogger, type PermissionDecision } from "@hamid/core";
 import { TelegramRenderer } from "./renderer.js";
 import { loadState, saveState, isSessionExpired, type DaemonState } from "./state.js";
 import type { CommConfig } from "./config.js";
 import { transcribeVoice } from "./transcribe.js";
 import { downloadTelegramFile } from "./media.js";
 
-function log(msg: string): void {
-  const ts = new Date().toISOString();
-  console.log(`[${ts}] ${msg}`);
-}
+const log = createLogger("bot");
 
 function formatDuration(ms: number): string {
   const seconds = Math.floor(ms / 1000);
@@ -86,12 +83,12 @@ export function createBot(cfg: CommConfig): Bot {
     const resolve = pendingPermissions.get(requestId);
 
     if (!resolve) {
-      log(`Permission expired: ${requestId}`);
+      log.info(`Permission expired: ${requestId}`);
       await ctx.answerCallbackQuery({ text: "Expired" });
       return;
     }
 
-    log(`Permission ${action}: ${requestId}`);
+    log.info(`Permission ${action}: ${requestId}`);
     pendingPermissions.delete(requestId);
 
     let decision: PermissionDecision;
@@ -118,7 +115,7 @@ export function createBot(cfg: CommConfig): Bot {
   // /new command — fresh session
   bot.command("new", async (ctx) => {
     if (String(ctx.chat.id) !== cfg.telegramChatId) return;
-    log("Session reset via /new");
+    log.info("Session reset via /new");
     state.sessionId = null;
     saveState(state);
     await ctx.reply("Fresh session. What's up?");
@@ -157,7 +154,7 @@ export function createBot(cfg: CommConfig): Bot {
   // /briefing command — generate and send daily briefing
   bot.command("briefing", async (ctx) => {
     if (String(ctx.chat.id) !== cfg.telegramChatId) return;
-    log("Briefing requested via /briefing");
+    log.info("Briefing requested via /briefing");
     await ctx.reply("Generating briefing...");
 
     try {
@@ -166,7 +163,7 @@ export function createBot(cfg: CommConfig): Bot {
       await ctx.reply(briefing);
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      log(`Briefing error: ${msg}`);
+      log.info(`Briefing error: ${msg}`);
       await ctx.reply(`Briefing failed: ${msg}`);
     }
   });
@@ -176,7 +173,7 @@ export function createBot(cfg: CommConfig): Bot {
     if (String(ctx.chat.id) !== cfg.telegramChatId) return;
 
     const accountFilter = ctx.match?.trim() || undefined;
-    log(`Email triage requested${accountFilter ? ` (account: ${accountFilter})` : ""}`);
+    log.info(`Email triage requested${accountFilter ? ` (account: ${accountFilter})` : ""}`);
     const statusMsg = await ctx.reply("Checking email...");
 
     (async () => {
@@ -207,7 +204,7 @@ export function createBot(cfg: CommConfig): Bot {
         );
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
-        log(`Email triage error: ${msg}`);
+        log.info(`Email triage error: ${msg}`);
         await bot.api.editMessageText(
           cfg.telegramChatId,
           statusMsg.message_id,
@@ -220,7 +217,7 @@ export function createBot(cfg: CommConfig): Bot {
   // /todo-review command — on-demand TODO review
   bot.command("todo_review", async (ctx) => {
     if (String(ctx.chat.id) !== cfg.telegramChatId) return;
-    log("TODO review requested via /todo_review");
+    log.info("TODO review requested via /todo_review");
     const statusMsg = await ctx.reply("Running TODO review...");
 
     (async () => {
@@ -235,7 +232,7 @@ export function createBot(cfg: CommConfig): Bot {
         );
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
-        log(`TODO review error: ${msg}`);
+        log.info(`TODO review error: ${msg}`);
         await bot.api.editMessageText(
           cfg.telegramChatId,
           statusMsg.message_id,
@@ -248,7 +245,7 @@ export function createBot(cfg: CommConfig): Bot {
   // /memory_hygiene command — on-demand memory maintenance
   bot.command("memory_hygiene", async (ctx) => {
     if (String(ctx.chat.id) !== cfg.telegramChatId) return;
-    log("Memory hygiene requested via /memory_hygiene");
+    log.info("Memory hygiene requested via /memory_hygiene");
     const statusMsg = await ctx.reply("Running memory hygiene...");
 
     (async () => {
@@ -263,7 +260,7 @@ export function createBot(cfg: CommConfig): Bot {
         );
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
-        log(`Memory hygiene error: ${msg}`);
+        log.info(`Memory hygiene error: ${msg}`);
         await bot.api.editMessageText(
           cfg.telegramChatId,
           statusMsg.message_id,
@@ -276,7 +273,7 @@ export function createBot(cfg: CommConfig): Bot {
   // /permission_hygiene command — on-demand permission cleanup
   bot.command("permission_hygiene", async (ctx) => {
     if (String(ctx.chat.id) !== cfg.telegramChatId) return;
-    log("Permission hygiene requested via /permission_hygiene");
+    log.info("Permission hygiene requested via /permission_hygiene");
     const statusMsg = await ctx.reply("Running permission hygiene...");
 
     (async () => {
@@ -291,7 +288,7 @@ export function createBot(cfg: CommConfig): Bot {
         );
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
-        log(`Permission hygiene error: ${msg}`);
+        log.info(`Permission hygiene error: ${msg}`);
         await bot.api.editMessageText(
           cfg.telegramChatId,
           statusMsg.message_id,
@@ -317,7 +314,7 @@ export function createBot(cfg: CommConfig): Bot {
       state.sessionCount++;
       saveState(state);
     }
-    log(`Message: "${text.slice(0, 80)}" (${resuming ? `resume:${state.sessionId}` : "new session"})`);
+    log.info(`Message: "${text.slice(0, 80)}" (${resuming ? `resume:${state.sessionId}` : "new session"})`);
 
     const renderer = new TelegramRenderer(bot, cfg.telegramChatId);
 
@@ -332,7 +329,7 @@ export function createBot(cfg: CommConfig): Bot {
         sessionId: state.sessionId ?? undefined,
         permissionLogPath: join(cfg.workspaceDir, "logs", "permissions.jsonl"),
         onPermissionRequest: async (request) => {
-          log(`Permission request: ${request.toolName}${request.isDestructive ? " (destructive)" : ""}`);
+          log.info(`Permission request: ${request.toolName}${request.isDestructive ? " (destructive)" : ""}`);
           return new Promise<PermissionDecision>((resolve) => {
             pendingPermissions.set(request.id, resolve);
             renderer.sendPermissionRequest(request, () => {});
@@ -348,12 +345,12 @@ export function createBot(cfg: CommConfig): Bot {
             state.sessionId = event.sessionId;
             state.lastActivity = Date.now();
             saveState(state);
-            log(`Done (session:${event.sessionId})`);
+            log.info(`Done (session:${event.sessionId})`);
           }
         }
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
-        log(`Error: ${msg}`);
+        log.info(`Error: ${msg}`);
         await renderer.handleEvent({ type: "error", message: msg });
       }
     })();
@@ -374,7 +371,7 @@ export function createBot(cfg: CommConfig): Bot {
     const photos = ctx.message.photo;
     const largest = photos[photos.length - 1];
     const caption = ctx.message.caption?.trim();
-    log("Photo received, downloading...");
+    log.info("Photo received, downloading...");
 
     const renderer = new TelegramRenderer(bot, cfg.telegramChatId);
 
@@ -387,7 +384,7 @@ export function createBot(cfg: CommConfig): Bot {
           largest.file_id,
           "jpg"
         );
-        log(`Photo saved: ${localPath}`);
+        log.info(`Photo saved: ${localPath}`);
 
         const prompt = caption
           ? `[Image: ${localPath}]\n${caption}`
@@ -395,7 +392,7 @@ export function createBot(cfg: CommConfig): Bot {
         sendToHamid(prompt);
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
-        log(`Photo download error: ${msg}`);
+        log.info(`Photo download error: ${msg}`);
         await renderer.handleEvent({ type: "error", message: `Failed to download photo: ${msg}` });
       }
     })();
@@ -406,7 +403,7 @@ export function createBot(cfg: CommConfig): Bot {
     if (String(ctx.chat.id) !== cfg.telegramChatId) return;
 
     const fileId = ctx.message.voice.file_id;
-    log("Voice note received, transcribing...");
+    log.info("Voice note received, transcribing...");
 
     const renderer = new TelegramRenderer(bot, cfg.telegramChatId);
 
@@ -419,11 +416,11 @@ export function createBot(cfg: CommConfig): Bot {
           fileId,
           cfg.openaiApiKey
         );
-        log(`Transcription: "${transcription.slice(0, 80)}"`);
+        log.info(`Transcription: "${transcription.slice(0, 80)}"`);
         sendToHamid(`[Voice note transcription]: ${transcription}`);
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
-        log(`Transcription error: ${msg}`);
+        log.info(`Transcription error: ${msg}`);
         await renderer.handleEvent({ type: "error", message: `Failed to transcribe voice note: ${msg}` });
       }
     })();

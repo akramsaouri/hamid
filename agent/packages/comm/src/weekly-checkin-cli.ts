@@ -1,9 +1,12 @@
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { createLogger } from "@hamid/core";
 import { loadConfig } from "./config.js";
 import { notify } from "./notify.js";
 import { resilientRun } from "./resilient.js";
 import { createHamidSession } from "@hamid/core";
+
+const log = createLogger("weekly-checkin");
 
 const GOALS_DATA_SOURCE_ID = "00da20d6-cded-4db9-93d6-8ab936ba837e";
 
@@ -78,11 +81,11 @@ await resilientRun("weekly-checkin", async () => {
     throw new Error("NOTION_TOKEN must be set");
   }
 
-  console.log("Fetching active goals from Notion...");
+  log.info("Fetching active goals from Notion...");
   const goals = await fetchActiveGoals(notionToken);
 
   if (goals === "NO_ACTIVE_GOALS") {
-    console.log("No active goals. Sending nudge...");
+    log.info("No active goals. Sending nudge...");
     await notify(
       cfg.telegramBotToken,
       cfg.telegramChatId,
@@ -91,7 +94,7 @@ await resilientRun("weekly-checkin", async () => {
     return;
   }
 
-  console.log("Generating check-in opening...");
+  log.info("Generating check-in opening...");
   const session = createHamidSession({
     workingDir: cfg.workspaceDir,
     systemPrompt: CHECKIN_SYSTEM_PROMPT,
@@ -117,7 +120,7 @@ await resilientRun("weekly-checkin", async () => {
     throw new Error("Failed to generate opening message");
   }
 
-  console.log("Sending to Telegram...");
+  log.info("Sending to Telegram...");
   await notify(cfg.telegramBotToken, cfg.telegramChatId, opening);
 
   // Write marker file for the bot to detect goal review mode
@@ -132,5 +135,5 @@ await resilientRun("weekly-checkin", async () => {
     })
   );
 
-  console.log("Weekly check-in sent. Marker file written.");
+  log.info("Weekly check-in sent. Marker file written.");
 });

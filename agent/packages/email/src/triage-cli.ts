@@ -1,3 +1,4 @@
+import { createLogger } from "@hamid/core";
 import { runTriage } from "./triage.js";
 import { loadConfig } from "./config.js";
 import { resolve, dirname } from "node:path";
@@ -10,8 +11,9 @@ const agentDir = resolve(__dirname, "..", "..", "..");
 // Load .env
 dotenvConfig({ path: resolve(agentDir, ".env") });
 
-async function main() {
+const log = createLogger("email-triage");
 
+async function main() {
   const accountFilter = process.argv[2]?.startsWith("--")
     ? undefined
     : process.argv[2];
@@ -22,7 +24,7 @@ async function main() {
   const telegramChatId = process.env.TELEGRAM_CHAT_ID;
 
   if (dryRun) {
-    console.log("DRY RUN — no actions will be executed\n");
+    log.info("DRY RUN — no actions will be executed");
   }
 
   const config = loadConfig();
@@ -36,11 +38,11 @@ async function main() {
   });
 
   if (!summary) {
-    console.log("No accounts due for sweep.");
+    log.info("No accounts due for sweep.");
     return;
   }
 
-  console.log(summary);
+  log.info(summary);
 
   // Send to Telegram (skip in dry run)
   if (!dryRun && telegramToken && telegramChatId) {
@@ -55,11 +57,11 @@ async function main() {
       notify: (token: string, chatId: string, text: string) => Promise<void>;
     };
     await notify(telegramToken, telegramChatId, summary);
-    console.log("Summary sent to Telegram.");
+    log.info("Summary sent to Telegram.");
   }
 }
 
 main().catch((err) => {
-  console.error("Triage failed:", err);
+  log.error("Triage failed:", err);
   process.exit(1);
 });

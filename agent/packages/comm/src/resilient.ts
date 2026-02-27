@@ -1,4 +1,5 @@
 import { execSync } from "node:child_process";
+import { createLogger, type Logger } from "@hamid/core";
 
 interface RetryOptions {
   maxAttempts?: number;
@@ -26,6 +27,8 @@ function isNetworkError(error: unknown): boolean {
   );
 }
 
+const retryLogger = createLogger("retry");
+
 export async function withRetry<T>(
   fn: () => Promise<T>,
   opts: RetryOptions = {}
@@ -46,7 +49,7 @@ export async function withRetry<T>(
         throw err;
       }
       const delay = baseDelayMs * Math.pow(2, attempt - 1);
-      console.log(
+      retryLogger.warn(
         `Attempt ${attempt}/${maxAttempts} failed, retrying in ${delay / 1000}s...`
       );
       await sleep(delay);
@@ -78,7 +81,7 @@ export async function waitForNetwork(
 
   while (Date.now() - start < timeoutMs) {
     if (await isNetworkUp()) return true;
-    console.log("Network not available, waiting 15s...");
+    retryLogger.warn("Network not available, waiting 15s...");
     await sleep(pollIntervalMs);
   }
   return false;
@@ -103,16 +106,17 @@ export async function resilientRun(
   taskName: string,
   fn: () => Promise<void>
 ): Promise<void> {
+  const log = createLogger(taskName);
   try {
-    console.log(`[${taskName}] Waiting for network...`);
+    log.info("Waiting for network...");
     const networkUp = await waitForNetwork();
     if (!networkUp) {
-      console.error(`[${taskName}] Network unavailable after 10 minutes.`);
+      log.error("Network unavailable after 10 minutes.");
       notifyLocal("Hamid", `${taskName} failed: no network after 10 min`);
       process.exit(1);
     }
 
-    console.log(`[${taskName}] Network up. Running task...`);
+    log.info("Network up. Running task...");
     await withRetry(fn, {
       maxAttempts: 3,
       baseDelayMs: 30_000,
@@ -121,7 +125,7 @@ export async function resilientRun(
     process.exit(0);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error(`[${taskName}] Failed after retries:`, err);
+    log.error("Failed after retries:", err);
 
     // Try Telegram notification (might work if only upstream service was down)
     try {

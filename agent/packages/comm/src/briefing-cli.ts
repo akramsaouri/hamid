@@ -1,16 +1,19 @@
+import { createLogger } from "@hamid/core";
 import { loadConfig } from "./config.js";
 import { generateBriefing } from "./briefing.js";
 import { notify } from "./notify.js";
 import { resilientRun } from "./resilient.js";
 
+const log = createLogger("briefing");
+
 await resilientRun("briefing", async () => {
   const cfg = loadConfig();
 
-  console.log("Generating daily briefing...");
+  log.info("Generating daily briefing...");
   const briefing = await generateBriefing(cfg.workspaceDir);
 
-  console.log("Sending to Telegram...");
+  log.info("Sending to Telegram...");
   await notify(cfg.telegramBotToken, cfg.telegramChatId, briefing);
 
-  console.log("Briefing sent.");
+  log.info("Briefing sent.");
 });
