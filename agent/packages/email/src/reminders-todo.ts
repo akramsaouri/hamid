@@ -30,20 +30,30 @@ export async function createEmailReminder(input: TodoInput): Promise<void> {
 
   const priority = PRIORITY_MAP[decision.priority] ?? 0;
 
-  const escaped = (s: string) =>
-    s.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  // Pass values as argv to avoid shell/AppleScript injection.
+  // osascript - <args> reads script from stdin, passes args to `on run argv`.
+  const script = `on run argv
+  set reminderName to item 1 of argv
+  set reminderBody to item 2 of argv
+  set reminderPriority to (item 3 of argv) as integer
 
-  const script = `
-tell application "Reminders"
-  tell list "Tasks"
-    make new reminder with properties {name:"${escaped(name)}", body:"${escaped(body)}", priority:${priority}}
+  tell application "Reminders"
+    tell list "Tasks"
+      make new reminder with properties {name:reminderName, body:reminderBody, priority:reminderPriority}
+    end tell
   end tell
-end tell`;
+end run`;
 
   await new Promise<void>((resolve, reject) => {
-    execFile("osascript", ["-e", script], (err) => {
-      if (err) reject(new Error(`Failed to create reminder: ${err.message}`));
-      else resolve();
-    });
+    const child = execFile(
+      "osascript",
+      ["-", name, body, String(priority)],
+      (err) => {
+        if (err)
+          reject(new Error(`Failed to create reminder: ${err.message}`));
+        else resolve();
+      }
+    );
+    child.stdin?.end(script);
   });
 }

@@ -1,4 +1,4 @@
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { createLogger, type Logger } from "@hamid/core";
 
 interface RetryOptions {
@@ -89,10 +89,12 @@ export async function waitForNetwork(
 
 export function notifyLocal(title: string, body: string): void {
   try {
-    const escaped = (s: string) => s.replace(/"/g, '\\"');
-    execSync(
-      `osascript -e 'display notification "${escaped(body)}" with title "${escaped(title)}"'`
-    );
+    execFileSync("osascript", [
+      "-e", "on run argv",
+      "-e", "display notification (item 1 of argv) with title (item 2 of argv)",
+      "-e", "end run",
+      body, title,
+    ]);
   } catch {
     // Last resort failed — nothing more we can do
   }

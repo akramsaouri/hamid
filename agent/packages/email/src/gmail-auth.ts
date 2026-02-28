@@ -4,7 +4,7 @@ import { createServer } from "node:http";
 import { URL } from "node:url";
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { exec } from "node:child_process";
+import { execFile } from "node:child_process";
 
 const SCOPES = [
   "https://www.googleapis.com/auth/gmail.readonly",
@@ -73,7 +73,7 @@ export async function authorizeAccount(
   console.log(authUrl);
   console.log("\nWaiting for callback...\n");
 
-  exec(`open "${authUrl}"`, () => {});
+  execFile("open", [authUrl], () => {});
 
   const code = await waitForCallback();
 
