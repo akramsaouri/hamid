@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { createHamidSession } from "@hamid/core";
+import { createHamidSession, MEMORY_HYGIENE_PROMPT } from "@hamid/core";
 
 function gatherAllMemory(workspaceDir: string): string {
   const memoryDir = join(workspaceDir, "memory");
@@ -64,25 +64,6 @@ function loadSkill(workspaceDir: string): string {
 
 const ALLOWED_TOOLS = new Set(["Read", "Write", "Edit", "Glob", "Grep", "Bash"]);
 
-const SYSTEM_PROMPT = `You are Hamid, running a scheduled memory maintenance task.
-
-Your job: read all memory files, update context.md to match reality, compress old dailies into weekly summaries, and archive old weeklies into monthly summaries. Commit the result.
-
-You have full read/write access to the workspace. Use it.
-
-Rules:
-- Rewrite stale sections of context.md, don't append
-- Daily notes older than 7 days: merge into memory/YYYY-WNN.md (weekly)
-- Weekly summaries older than 30 days: merge into memory/archive/YYYY-MM.md (monthly)
-- Delete originals after compression
-- Keep: decisions, preferences, architectural choices, recurring gotchas
-- Drop: build steps, session narration, test counts
-- If it's already captured in context.md, the daily note can lose it
-- Commit all changes in a single commit with message "Memory maintenance: compress and update context"
-- Do NOT include "Co-Authored-By" in commit messages
-
-After all changes, output a short summary of what you did (what was updated in context.md, what files were compressed/archived, what was removed). Plain text, no markdown.`;
-
 export async function runMemoryHygiene(workspaceDir: string): Promise<string> {
   const allMemory = gatherAllMemory(workspaceDir);
   const skill = loadSkill(workspaceDir);
@@ -99,7 +80,7 @@ export async function runMemoryHygiene(workspaceDir: string): Promise<string> {
 
   const session = createHamidSession({
     workingDir: workspaceDir,
-    systemPrompt: SYSTEM_PROMPT,
+    systemPrompt: MEMORY_HYGIENE_PROMPT,
     onPermissionRequest: async (req) => {
       // Allow file operations and git commands scoped to workspace
       if (ALLOWED_TOOLS.has(req.toolName)) {

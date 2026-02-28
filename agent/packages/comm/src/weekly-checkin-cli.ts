@@ -1,28 +1,13 @@
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { createLogger } from "@hamid/core";
+import { createLogger, createHamidSession, WEEKLY_CHECKIN_PROMPT } from "@hamid/core";
 import { loadConfig } from "./config.js";
 import { notify } from "./notify.js";
 import { resilientRun } from "./resilient.js";
-import { createHamidSession } from "@hamid/core";
 
 const log = createLogger("weekly-checkin");
 
 const GOALS_DATA_SOURCE_ID = "00da20d6-cded-4db9-93d6-8ab936ba837e";
-
-const CHECKIN_SYSTEM_PROMPT = `You are Hamid. Generate an opening message for Sat's weekly goal review.
-Be direct, conversational, coaching — not robotic or project-manager-y. Use your voice from SOUL.md.
-
-You'll receive a list of active goals with their status. Pick the most relevant one to start with
-(the one with the most momentum or the one that needs the most attention) and open with it.
-
-Format:
-- Brief Monday morning greeting (one line, vary it)
-- State how many active goals there are
-- Start with the first goal: name it, note its status, and ask a specific question about progress
-
-Keep it short. This is the start of a conversation, not a report.
-Do NOT use markdown formatting. Plain text only.`;
 
 async function fetchActiveGoals(notionToken: string): Promise<string> {
   const resp = await fetch(
@@ -97,7 +82,7 @@ await resilientRun("weekly-checkin", async () => {
   log.info("Generating check-in opening...");
   const session = createHamidSession({
     workingDir: cfg.workspaceDir,
-    systemPrompt: CHECKIN_SYSTEM_PROMPT,
+    systemPrompt: WEEKLY_CHECKIN_PROMPT,
     onPermissionRequest: async () => ({
       behavior: "deny" as const,
       message: "Check-in is read-only",

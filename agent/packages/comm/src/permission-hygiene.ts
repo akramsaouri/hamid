@@ -1,7 +1,7 @@
 import { readFileSync, existsSync, renameSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
-import { createHamidSession } from "@hamid/core";
+import { createHamidSession, PERMISSION_HYGIENE_PROMPT } from "@hamid/core";
 
 interface SettingsFileData {
   path: string;
@@ -113,20 +113,6 @@ function rotatePermissionLog(logPath: string): void {
 
 const ALLOWED_TOOLS = new Set(["Read", "Write", "Edit", "Glob", "Grep", "Bash"]);
 
-const SYSTEM_PROMPT = `You are Hamid, running a scheduled permission hygiene task.
-
-Your job: analyze permission settings and usage data, consolidate redundant patterns, add missing patterns for frequently approved commands, and update settings files.
-
-You have read/write access to the workspace and settings files. Use it.
-
-Rules:
-- Only modify settings.local.json files (never settings.json)
-- Never modify deny lists
-- Never add destructive command patterns
-- Preserve non-permission keys in settings files
-- Be conservative — when unsure, don't change
-- After all changes, output a short summary of what you did. Plain text, no markdown.`;
-
 export async function runPermissionHygiene(workspaceDir: string): Promise<string> {
   const settingsFiles = gatherSettingsFiles(workspaceDir);
   const logPath = join(workspaceDir, "logs", "permissions.jsonl");
@@ -154,7 +140,7 @@ export async function runPermissionHygiene(workspaceDir: string): Promise<string
 
   const session = createHamidSession({
     workingDir: workspaceDir,
-    systemPrompt: SYSTEM_PROMPT,
+    systemPrompt: PERMISSION_HYGIENE_PROMPT,
     onPermissionRequest: async (req) => {
       if (ALLOWED_TOOLS.has(req.toolName)) {
         if (req.toolName === "Bash") {

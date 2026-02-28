@@ -1,7 +1,7 @@
 import { execSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { createHamidSession } from "@hamid/core";
+import { createHamidSession, BRIEFING_PROMPT } from "@hamid/core";
 
 const OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast";
 const LATITUDE = 59.52;
@@ -107,23 +107,6 @@ export function gatherMemory(workspaceDir: string): string {
   }
 }
 
-const BRIEFING_SYSTEM_PROMPT = `You are Hamid. Write a morning briefing for Sat.
-Be direct, short, no fluff. Use your voice from SOUL.md.
-
-You'll receive three data blocks:
-1. Service health output
-2. Weather data for Upplands Vasby/Stockholm
-3. Recent memory files (last 7 days)
-
-Structure the briefing as:
-- One line greeting (vary it, don't be robotic)
-- Weather with emoji header: 2-3 sentences, what it feels like and whether to dress for rain
-- Health with emoji header: only mention if something is wrong. If everything's fine, one line.
-- Follow-ups with emoji header: surface 1-3 things from memory that deserve attention today as bullet points. If nothing, say so.
-
-Keep the whole thing lean. Short sentences, bullet points for follow-ups. Leave room — this format will grow.
-Do NOT use markdown formatting. Plain text only. Emoji for section headers is fine.`;
-
 export async function generateBriefing(workspaceDir: string): Promise<string> {
   const [weather, health, memory] = await Promise.all([
     fetchWeather(),
@@ -144,7 +127,7 @@ export async function generateBriefing(workspaceDir: string): Promise<string> {
 
   const session = createHamidSession({
     workingDir: workspaceDir,
-    systemPrompt: BRIEFING_SYSTEM_PROMPT,
+    systemPrompt: BRIEFING_PROMPT,
     onPermissionRequest: async () => ({ behavior: "deny" as const, message: "Briefing is read-only" }),
   });
 

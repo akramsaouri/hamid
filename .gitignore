@@ -8,6 +8,7 @@ logs/*
 SOUL.md
 CLAUDE.md
 TODO.md
+agent/packages/core/src/prompts.ts
 
 memory/*
 !memory/.gitkeep

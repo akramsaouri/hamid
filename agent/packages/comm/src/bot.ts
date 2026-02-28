@@ -2,7 +2,7 @@ import { Bot } from "grammy";
 import { execSync } from "node:child_process";
 import { existsSync, readFileSync, unlinkSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { createHamidSession, createLogger, type PermissionDecision } from "@hamid/core";
+import { createHamidSession, createLogger, GOAL_REVIEW_PROMPT, type PermissionDecision } from "@hamid/core";
 import { TelegramRenderer } from "./renderer.js";
 import { loadState, saveState, isSessionExpired, type DaemonState } from "./state.js";
 import type { CommConfig } from "./config.js";
@@ -34,19 +34,6 @@ function getGitStatus(cwd: string): string {
     return "unknown";
   }
 }
-
-const GOAL_REVIEW_PROMPT = `You are conducting a weekly goal review with Sat.
-
-Rules:
-- Walk through each active goal ONE AT A TIME
-- For each goal: ask about progress, discuss blockers, define 2-3 concrete next actions
-- For stalled goals: gently probe why ("What's been getting in the way?"), let Sat decide priority
-- Before discussing each goal, check last week's actions: use the Apple Reminders MCP (search_reminders) to find reminders whose notes contain the goal name. Note which are completed vs. still open — use this to ground the conversation.
-- After discussing each goal, create an Apple Reminder for each next action using the Apple Reminders MCP (create_reminder in the "Tasks" list, due date next Monday). Include "Goal: <goal-name>" in the reminder notes so next week's review can find them.
-- Update Status property via Notion MCP (patch-page) if Sat says it changed
-- When all goals are reviewed, delete the marker file with: rm agent/.goal-review.json
-  Then give a brief summary of what was committed to this week
-- Conversational, not robotic. You're a thinking partner, not a project manager.`;
 
 function getGoalReviewPrompt(workspaceDir: string): string | undefined {
   const markerPath = join(workspaceDir, "agent", ".goal-review.json");
