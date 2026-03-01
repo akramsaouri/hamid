@@ -75,7 +75,7 @@ export async function runMemoryHygiene(workspaceDir: string): Promise<string> {
     "=== ALL MEMORY FILES ===",
     allMemory,
     "",
-    "Run the memory hygiene process now. Read the files, update context.md, compress old dailies, and commit.",
+    "Run the memory hygiene process now. Read the files, update context.md, and compress old dailies.",
   ].join("\n");
 
   const session = createHamidSession({
@@ -88,10 +88,10 @@ export async function runMemoryHygiene(workspaceDir: string): Promise<string> {
         if (req.toolName === "Bash") {
           const input = req.input as { command?: string };
           const cmd = input.command ?? "";
-          if (cmd.startsWith("git ") || cmd.startsWith("mkdir ")) {
+          if (cmd.startsWith("mkdir ")) {
             return { behavior: "allow" };
           }
-          return { behavior: "deny", message: "Only git and mkdir commands allowed" };
+          return { behavior: "deny", message: "Only mkdir commands allowed" };
         }
         return { behavior: "allow" };
       }

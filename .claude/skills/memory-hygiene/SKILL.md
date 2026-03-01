@@ -37,10 +37,6 @@ Rewrite stale sections of context.md. Don't patch -- rewrite what drifted.
 - When in doubt: if it's in context.md, the daily note can lose it
 - Delete originals after compression
 
-### 3. Commit
-
-Commit all memory changes in a single commit.
-
 ## Common Mistakes
 
 - **Appending to context.md instead of rewriting** -- creates contradictions. Rewrite the stale section.
