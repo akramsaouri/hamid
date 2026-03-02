@@ -64,34 +64,23 @@ async function fetchActiveGoals(notionToken: string): Promise<GoalInfo[] | "NO_A
 }
 
 async function fetchOpenReminders(): Promise<string> {
-  const script = `on run
-  set output to ""
-  tell application "Reminders"
-    tell list "Tasks"
-      set openReminders to every reminder whose completed is false
-      set reminderNames to name of openReminders
-      set reminderCount to count of reminderNames
-      repeat with i from 1 to reminderCount
-        set output to output & item i of reminderNames & linefeed
-      end repeat
-    end tell
-  end tell
-  return output
-end run`;
-
   const raw = await new Promise<string>((resolve, reject) => {
-    const child = execFile("osascript", ["-"], (err, stdout) => {
-      if (err) reject(new Error(`Failed to fetch reminders: ${err.message}`));
-      else resolve(stdout);
-    });
-    child.stdin?.end(script);
+    execFile(
+      "osascript",
+      ["-e", 'tell application "Reminders" to tell list "Tasks" to return name of (every reminder whose completed is false)'],
+      { timeout: 15000 },
+      (err, stdout) => {
+        if (err) reject(new Error(`Failed to fetch reminders: ${err.message}`));
+        else resolve(stdout);
+      }
+    );
   });
 
   const reminders = raw
     .trim()
-    .split("\n")
-    .filter((l) => l.trim())
-    .map((l) => `- ${l.trim()}`);
+    .split(", ")
+    .filter((r) => r.trim())
+    .map((r) => `- ${r.trim()}`);
 
   return reminders.length > 0 ? reminders.join("\n") : "None";
 }
