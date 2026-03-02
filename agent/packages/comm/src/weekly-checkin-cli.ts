@@ -1,4 +1,5 @@
 import { writeFileSync } from "node:fs";
+import { execFile } from "node:child_process";
 import { join } from "node:path";
 import { createLogger, createHamidSession, WEEKLY_CHECKIN_PROMPT } from "@hamid/core";
 import { loadConfig } from "./config.js";
@@ -9,7 +10,13 @@ const log = createLogger("weekly-checkin");
 
 const GOALS_DATA_SOURCE_ID = "00da20d6-cded-4db9-93d6-8ab936ba837e";
 
-async function fetchActiveGoals(notionToken: string): Promise<string> {
+interface GoalInfo {
+  name: string;
+  status: string;
+  year: string;
+}
+
+async function fetchActiveGoals(notionToken: string): Promise<GoalInfo[] | "NO_ACTIVE_GOALS"> {
   const resp = await fetch(
     `https://api.notion.com/v1/databases/${GOALS_DATA_SOURCE_ID}/query`,
     {
@@ -49,12 +56,83 @@ async function fetchActiveGoals(notionToken: string): Promise<string> {
     return "NO_ACTIVE_GOALS";
   }
 
-  return data.results
-    .map((page) => {
-      const name = page.properties.Name.title.map((t) => t.plain_text).join("");
-      const status = page.properties.Status.select?.name ?? "Unknown";
-      const year = page.properties.Year.select?.name ?? "No year";
-      return `- ${name} | Status: ${status} | Year: ${year}`;
+  return data.results.map((page) => ({
+    name: page.properties.Name.title.map((t) => t.plain_text).join(""),
+    status: page.properties.Status.select?.name ?? "Unknown",
+    year: page.properties.Year.select?.name ?? "No year",
+  }));
+}
+
+async function fetchGoalReminders(goalNames: string[]): Promise<Map<string, string[]>> {
+  const script = `on run
+  set output to ""
+  tell application "Reminders"
+    tell list "Tasks"
+      set allReminders to every reminder
+      repeat with r in allReminders
+        try
+          set b to body of r
+          if b contains "Goal:" then
+            set n to name of r
+            set c to completed of r
+            set d to ""
+            try
+              set d to due date of r as string
+            end try
+            if c then
+              set status to "done"
+            else
+              set status to "open"
+            end if
+            set output to output & n & "|||" & b & "|||" & status & "|||" & d & linefeed
+          end if
+        end try
+      end repeat
+    end tell
+  end tell
+  return output
+end run`;
+
+  const raw = await new Promise<string>((resolve, reject) => {
+    const child = execFile("osascript", ["-"], (err, stdout) => {
+      if (err) reject(new Error(`Failed to fetch reminders: ${err.message}`));
+      else resolve(stdout);
+    });
+    child.stdin?.end(script);
+  });
+
+  const result = new Map<string, string[]>();
+  for (const name of goalNames) {
+    result.set(name, []);
+  }
+
+  for (const line of raw.trim().split("\n")) {
+    if (!line.trim()) continue;
+    const [name, body, status, dueDate] = line.split("|||");
+    if (!name || !body) continue;
+
+    for (const goalName of goalNames) {
+      if (body.includes(`Goal: ${goalName}`)) {
+        const duePart = dueDate?.trim() ? ` (due: ${dueDate.trim()})` : "";
+        result.get(goalName)!.push(`  - [${status}] ${name.trim()}${duePart}`);
+      }
+    }
+  }
+
+  return result;
+}
+
+function formatGoalsWithReminders(goals: GoalInfo[], reminders: Map<string, string[]>): string {
+  return goals
+    .map((g) => {
+      let line = `- ${g.name} | Status: ${g.status} | Year: ${g.year}`;
+      const goalReminders = reminders.get(g.name) ?? [];
+      if (goalReminders.length > 0) {
+        line += "\n  Last week's actions:\n" + goalReminders.join("\n");
+      } else {
+        line += "\n  Last week's actions: none tracked";
+      }
+      return line;
     })
     .join("\n");
 }
@@ -79,6 +157,17 @@ await resilientRun("weekly-checkin", async () => {
     return;
   }
 
+  log.info("Fetching related reminders from Apple Reminders...");
+  let reminders: Map<string, string[]>;
+  try {
+    reminders = await fetchGoalReminders(goals.map((g) => g.name));
+  } catch (err) {
+    log.warn(`Could not fetch reminders: ${err}. Continuing without them.`);
+    reminders = new Map(goals.map((g) => [g.name, []]));
+  }
+
+  const goalsContext = formatGoalsWithReminders(goals, reminders);
+
   log.info("Generating check-in opening...");
   const session = createHamidSession({
     workingDir: cfg.workspaceDir,
@@ -91,7 +180,7 @@ await resilientRun("weekly-checkin", async () => {
 
   let opening = "";
   for await (const event of session.send(
-    `=== ACTIVE GOALS ===\n${goals}`
+    `=== ACTIVE GOALS ===\n${goalsContext}`
   )) {
     if (event.type === "text") {
       opening += event.content;
