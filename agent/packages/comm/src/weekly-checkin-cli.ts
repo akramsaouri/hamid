@@ -63,25 +63,16 @@ async function fetchActiveGoals(notionToken: string): Promise<GoalInfo[] | "NO_A
   }));
 }
 
-async function fetchGoalReminders(goalNames: string[]): Promise<Map<string, string[]>> {
+async function fetchOpenReminders(): Promise<string> {
   const script = `on run
   set output to ""
   tell application "Reminders"
     tell list "Tasks"
-      set goalReminders to every reminder whose body contains "Goal:"
-      set reminderNames to name of goalReminders
-      set reminderBodies to body of goalReminders
-      set reminderCompleted to completed of goalReminders
+      set openReminders to every reminder whose completed is false
+      set reminderNames to name of openReminders
       set reminderCount to count of reminderNames
       repeat with i from 1 to reminderCount
-        set n to item i of reminderNames
-        set b to item i of reminderBodies
-        if item i of reminderCompleted then
-          set s to "done"
-        else
-          set s to "open"
-        end if
-        set output to output & n & "|||" & b & "|||" & s & linefeed
+        set output to output & item i of reminderNames & linefeed
       end repeat
     end tell
   end tell
@@ -96,39 +87,13 @@ end run`;
     child.stdin?.end(script);
   });
 
-  const result = new Map<string, string[]>();
-  for (const name of goalNames) {
-    result.set(name, []);
-  }
+  const reminders = raw
+    .trim()
+    .split("\n")
+    .filter((l) => l.trim())
+    .map((l) => `- ${l.trim()}`);
 
-  for (const line of raw.trim().split("\n")) {
-    if (!line.trim()) continue;
-    const [name, body, status] = line.split("|||");
-    if (!name || !body) continue;
-
-    for (const goalName of goalNames) {
-      if (body.includes(`Goal: ${goalName}`)) {
-        result.get(goalName)!.push(`  - [${status}] ${name.trim()}`);
-      }
-    }
-  }
-
-  return result;
-}
-
-function formatGoalsWithReminders(goals: GoalInfo[], reminders: Map<string, string[]>): string {
-  return goals
-    .map((g) => {
-      let line = `- ${g.name} | Status: ${g.status} | Year: ${g.year}`;
-      const goalReminders = reminders.get(g.name) ?? [];
-      if (goalReminders.length > 0) {
-        line += "\n  Last week's actions:\n" + goalReminders.join("\n");
-      } else {
-        line += "\n  Last week's actions: none tracked";
-      }
-      return line;
-    })
-    .join("\n");
+  return reminders.length > 0 ? reminders.join("\n") : "None";
 }
 
 await resilientRun("weekly-checkin", async () => {
@@ -151,16 +116,18 @@ await resilientRun("weekly-checkin", async () => {
     return;
   }
 
-  log.info("Fetching related reminders from Apple Reminders...");
-  let reminders: Map<string, string[]>;
+  log.info("Fetching open reminders from Apple Reminders...");
+  let remindersContext: string;
   try {
-    reminders = await fetchGoalReminders(goals.map((g) => g.name));
+    remindersContext = await fetchOpenReminders();
   } catch (err) {
     log.warn(`Could not fetch reminders: ${err}. Continuing without them.`);
-    reminders = new Map(goals.map((g) => [g.name, []]));
+    remindersContext = "Could not fetch";
   }
 
-  const goalsContext = formatGoalsWithReminders(goals, reminders);
+  const goalsText = goals
+    .map((g) => `- ${g.name} | Status: ${g.status} | Year: ${g.year}`)
+    .join("\n");
 
   log.info("Generating check-in opening...");
   const session = createHamidSession({
@@ -174,7 +141,7 @@ await resilientRun("weekly-checkin", async () => {
 
   let opening = "";
   for await (const event of session.send(
-    `=== ACTIVE GOALS ===\n${goalsContext}`
+    `=== ACTIVE GOALS ===\n${goalsText}\n\n=== OPEN REMINDERS (Tasks list) ===\n${remindersContext}`
   )) {
     if (event.type === "text") {
       opening += event.content;
