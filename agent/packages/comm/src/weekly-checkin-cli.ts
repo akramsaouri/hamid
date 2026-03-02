@@ -68,25 +68,20 @@ async function fetchGoalReminders(goalNames: string[]): Promise<Map<string, stri
   set output to ""
   tell application "Reminders"
     tell list "Tasks"
-      set allReminders to every reminder
-      repeat with r in allReminders
-        try
-          set b to body of r
-          if b contains "Goal:" then
-            set n to name of r
-            set c to completed of r
-            set d to ""
-            try
-              set d to due date of r as string
-            end try
-            if c then
-              set status to "done"
-            else
-              set status to "open"
-            end if
-            set output to output & n & "|||" & b & "|||" & status & "|||" & d & linefeed
-          end if
-        end try
+      set goalReminders to every reminder whose body contains "Goal:"
+      set reminderNames to name of goalReminders
+      set reminderBodies to body of goalReminders
+      set reminderCompleted to completed of goalReminders
+      set reminderCount to count of reminderNames
+      repeat with i from 1 to reminderCount
+        set n to item i of reminderNames
+        set b to item i of reminderBodies
+        if item i of reminderCompleted then
+          set s to "done"
+        else
+          set s to "open"
+        end if
+        set output to output & n & "|||" & b & "|||" & s & linefeed
       end repeat
     end tell
   end tell
@@ -108,13 +103,12 @@ end run`;
 
   for (const line of raw.trim().split("\n")) {
     if (!line.trim()) continue;
-    const [name, body, status, dueDate] = line.split("|||");
+    const [name, body, status] = line.split("|||");
     if (!name || !body) continue;
 
     for (const goalName of goalNames) {
       if (body.includes(`Goal: ${goalName}`)) {
-        const duePart = dueDate?.trim() ? ` (due: ${dueDate.trim()})` : "";
-        result.get(goalName)!.push(`  - [${status}] ${name.trim()}${duePart}`);
+        result.get(goalName)!.push(`  - [${status}] ${name.trim()}`);
       }
     }
   }
