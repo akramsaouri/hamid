@@ -6,20 +6,20 @@ export function formatTriageSummary(
 ): string {
   const accountsSwept = sweeps.length;
   const lines: string[] = [
-    `Email Triage (${accountsSwept} account${accountsSwept === 1 ? "" : "s"} swept)\n`,
+    `📧 **Email Triage** (${accountsSwept} account${accountsSwept === 1 ? "" : "s"})\n`,
   ];
 
   for (const sweep of sweeps) {
-    lines.push(`${sweep.account}:`);
+    lines.push(`**${sweep.account}:**`);
 
     if (sweep.errors.length > 0) {
       for (const err of sweep.errors) {
-        lines.push(`  ⚠ Error: ${err}`);
+        lines.push(`  ⚠ ${err}`);
       }
     }
 
     if (sweep.results.length === 0 && sweep.errors.length === 0) {
-      lines.push("  No new emails");
+      lines.push("  Nothing new");
       lines.push("");
       continue;
     }
@@ -30,9 +30,9 @@ export function formatTriageSummary(
     if (grouped.create_todo.length > 0) {
       for (const email of grouped.create_todo) {
         const priority =
-          email.decision.priority === "high" ? " [HIGH]" : "";
+          email.decision.priority === "high" ? " 🔴" : "";
         lines.push(
-          `  ✓ Created todo: "${email.message.subject}"${priority}`
+          `  ✅ Todo: "${email.message.subject}"${priority}`
         );
       }
     }
@@ -41,7 +41,7 @@ export function formatTriageSummary(
     if (grouped.notify.length > 0) {
       for (const email of grouped.notify) {
         lines.push(
-          `  📬 ${email.message.from}: "${email.message.subject}"`
+          `  📬 ${extractSenderName(email.message.from)}: "${email.message.subject}"`
         );
       }
     }
@@ -52,14 +52,14 @@ export function formatTriageSummary(
         for (const email of grouped.trash) {
           const tag = email.decision.source === "ai" ? " [AI]" : " [rule]";
           lines.push(
-            `  🗑 Trash: "${email.message.subject}" from ${extractSenderName(email.message.from)}${tag}`
+            `  🗑 "${email.message.subject}" from ${extractSenderName(email.message.from)}${tag}`
           );
         }
       } else {
-        const senders = grouped.trash
-          .map((e) => extractSenderName(e.message.from))
-          .join(", ");
-        lines.push(`  🗑 Trashed: ${grouped.trash.length} (${senders})`);
+        const senderSummary = deduplicateSenders(
+          grouped.trash.map((e) => extractSenderName(e.message.from))
+        );
+        lines.push(`  🗑 Trashed ${grouped.trash.length} (${senderSummary})`);
       }
     }
 
@@ -69,11 +69,11 @@ export function formatTriageSummary(
         for (const email of grouped.skip) {
           const tag = email.decision.source === "ai" ? " [AI]" : " [rule]";
           lines.push(
-            `  ⏭ Skip: "${email.message.subject}" from ${extractSenderName(email.message.from)}${tag}`
+            `  ⏭ "${email.message.subject}" from ${extractSenderName(email.message.from)}${tag}`
           );
         }
       } else {
-        lines.push(`  ⏭ Skipped: ${grouped.skip.length} (no action needed)`);
+        lines.push(`  ⏭ Skipped ${grouped.skip.length}`);
       }
     }
 
@@ -81,6 +81,16 @@ export function formatTriageSummary(
   }
 
   return lines.join("\n").trim();
+}
+
+function deduplicateSenders(senders: string[]): string {
+  const counts = new Map<string, number>();
+  for (const s of senders) {
+    counts.set(s, (counts.get(s) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([name, count]) => (count > 1 ? `${name} x${count}` : name))
+    .join(", ");
 }
 
 function groupByAction(
