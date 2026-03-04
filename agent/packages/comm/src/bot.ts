@@ -2,7 +2,7 @@ import { Bot } from "grammy";
 import { execSync } from "node:child_process";
 import { existsSync, readFileSync, unlinkSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { createHamidSession, createLogger, GOAL_REVIEW_PROMPT, type PermissionDecision } from "@hamid/core";
+import { createHamidSession, createLogger, goalReviewPrompt, type PermissionDecision } from "@hamid/core";
 import { TelegramRenderer } from "./renderer.js";
 import { loadState, saveState, isSessionExpired, type DaemonState } from "./state.js";
 import type { CommConfig } from "./config.js";
@@ -45,7 +45,7 @@ function getGoalReviewPrompt(workspaceDir: string): string | undefined {
       return undefined;
     }
     const soul = readFileSync(join(workspaceDir, "SOUL.md"), "utf-8");
-    return soul + "\n\n" + GOAL_REVIEW_PROMPT;
+    return soul + "\n\n" + goalReviewPrompt();
   } catch {
     return undefined;
   }

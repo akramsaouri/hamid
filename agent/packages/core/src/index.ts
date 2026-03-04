@@ -6,7 +6,7 @@ export { createLogger } from "./logger.js";
 export type { Logger } from "./logger.js";
 export {
   JUDGE_PROMPT,
-  GOAL_REVIEW_PROMPT,
+  goalReviewPrompt,
   TODO_REVIEW_PROMPT,
   MEMORY_HYGIENE_PROMPT,
   PERMISSION_HYGIENE_PROMPT,
