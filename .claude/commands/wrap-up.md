@@ -4,4 +4,4 @@ Wrap up the current session: commit, push, and write memory.
 
 1. **Commit** — Stage all changes, review the diff, write a clean commit message.
 2. **Push** — Push to the current branch's remote.
-3. **Memory** — Write or update today's daily note at `memory/YYYY-MM-DD.md`
+3. **Memory** — Write or update today's daily note at `memory/YYYY-MM-DD.md` (no need to commit, they are gitignored)
