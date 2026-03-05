@@ -11,7 +11,7 @@ export function loadConfig(): EmailConfig {
     accounts: {
       personal: {
         address: env("GMAIL_ADDRESS_PERSONAL"),
-        schedule: "0 8,9,10,11,12,13,14,15,16,17,18 * * 1-5", // every hour 8am-6pm weekdays
+        schedule: "0 8,9,10,11,12,13,14,15,16,17,18 * * *", // every hour 8am-6pm daily
         allowDelete: true,
         rules: [
           { match: { from: "*noreply*" }, action: "trash" },
