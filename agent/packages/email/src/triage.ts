@@ -5,7 +5,6 @@ import { judgeEmail } from "./judge.js";
 import { createEmailReminder } from "./reminders-todo.js";
 import { isAccountDue } from "./schedule.js";
 import { loadEmailState, saveEmailState } from "./state.js";
-import { formatTriageSummary } from "./summary.js";
 import {
   EmailConfig,
   EmailAccount,
@@ -25,7 +24,7 @@ export interface TriageOptions {
 export async function runTriage(
   config: EmailConfig,
   options: TriageOptions
-): Promise<string> {
+): Promise<TriageSweepResult[]> {
   const { agentDir, workspaceDir, accountFilter, forceRun, dryRun } = options;
 
   const creds = loadCredentials(agentDir);
@@ -61,11 +60,7 @@ export async function runTriage(
     }
   }
 
-  if (sweepResults.length === 0) {
-    return "";
-  }
-
-  return formatTriageSummary(sweepResults, dryRun);
+  return sweepResults;
 }
 
 async function sweepAccount(

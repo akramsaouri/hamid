@@ -41,6 +41,7 @@ export interface EmailMatch {
 
 export interface EmailConfig {
   accounts: Record<string, EmailAccount>;
+  notifySchedule?: string; // cron for when to send batched Telegram summary
 }
 
 // === Triage Types ===
@@ -73,6 +74,26 @@ export interface AccountState {
   lastMessageId?: string;
 }
 
+export interface PendingTriagedEmail {
+  from: string;
+  subject: string;
+  account: string;
+  action: EmailAction;
+  actions?: EmailAction[];
+  priority: Priority;
+  reason: string;
+  source: "rule" | "ai";
+}
+
+export interface PendingSweepResult {
+  account: string;
+  timestamp: string; // ISO
+  results: PendingTriagedEmail[];
+  errors: string[];
+}
+
 export interface EmailState {
   accounts: Record<string, AccountState>;
+  pendingSweeps?: PendingSweepResult[];
+  lastNotifiedAt?: string;
 }

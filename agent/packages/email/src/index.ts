@@ -9,6 +9,8 @@ export type {
   TriageDecision,
   TriagedEmail,
   TriageSweepResult,
+  PendingTriagedEmail,
+  PendingSweepResult,
   AccountState,
   EmailState,
 } from "./types.js";
@@ -32,8 +34,18 @@ export { judgeEmail } from "./judge.js";
 export { createEmailReminder } from "./reminders-todo.js";
 export type { TodoInput } from "./reminders-todo.js";
 
-export { formatTriageSummary } from "./summary.js";
+export {
+  formatTriageSummary,
+  toPendingSweep,
+  mergePendingSweeps,
+} from "./summary.js";
 
 export { runTriage } from "./triage.js";
 export type { TriageOptions } from "./triage.js";
-export { loadEmailState, saveEmailState } from "./state.js";
+export {
+  loadEmailState,
+  saveEmailState,
+  appendPendingSweeps,
+  consumePendingSweeps,
+  getLastNotifiedAt,
+} from "./state.js";

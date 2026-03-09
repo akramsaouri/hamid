@@ -170,20 +170,27 @@ export function createBot(cfg: CommConfig): Bot {
         // Dynamic imports to avoid circular dependency with @hamid/email
         const configPath = resolve(agentDir, "packages", "email", "dist", "config.js");
         const triagePath = resolve(agentDir, "packages", "email", "dist", "triage.js");
+        const summaryPath = resolve(agentDir, "packages", "email", "dist", "summary.js");
 
         const { loadConfig } = (await import(configPath)) as { loadConfig: () => unknown };
         const { runTriage } = (await import(triagePath)) as {
-          runTriage: (config: unknown, options: Record<string, unknown>) => Promise<string>;
+          runTriage: (config: unknown, options: Record<string, unknown>) => Promise<unknown[]>;
+        };
+        const { formatTriageSummary, toPendingSweep } = (await import(summaryPath)) as {
+          formatTriageSummary: (sweeps: unknown[]) => string;
+          toPendingSweep: (sweep: unknown) => unknown;
         };
 
-        const summary = await runTriage(loadConfig(), {
+        const sweeps = await runTriage(loadConfig(), {
           agentDir,
           workspaceDir: cfg.workspaceDir,
           accountFilter,
           forceRun: true,
         });
 
-        const reply = summary || "No new emails.";
+        const reply = sweeps.length > 0
+          ? formatTriageSummary(sweeps.map(toPendingSweep))
+          : "No new emails.";
         await bot.api.editMessageText(
           cfg.telegramChatId,
           statusMsg.message_id,

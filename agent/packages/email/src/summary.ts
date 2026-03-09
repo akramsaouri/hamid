@@ -1,7 +1,49 @@
-import { TriageSweepResult, TriagedEmail } from "./types.js";
+import {
+  TriageSweepResult,
+  PendingTriagedEmail,
+  PendingSweepResult,
+} from "./types.js";
+
+export function toPendingSweep(sweep: TriageSweepResult): PendingSweepResult {
+  return {
+    account: sweep.account,
+    timestamp: sweep.timestamp.toISOString(),
+    results: sweep.results.map((r) => ({
+      from: r.message.from,
+      subject: r.message.subject,
+      account: r.account,
+      action: r.decision.action,
+      actions: r.decision.actions,
+      priority: r.decision.priority,
+      reason: r.decision.reason,
+      source: r.decision.source,
+    })),
+    errors: sweep.errors,
+  };
+}
+
+export function mergePendingSweeps(
+  sweeps: PendingSweepResult[]
+): PendingSweepResult[] {
+  const merged = new Map<string, PendingSweepResult>();
+  for (const sweep of sweeps) {
+    const existing = merged.get(sweep.account);
+    if (existing) {
+      existing.results.push(...sweep.results);
+      existing.errors.push(...sweep.errors);
+    } else {
+      merged.set(sweep.account, {
+        ...sweep,
+        results: [...sweep.results],
+        errors: [...sweep.errors],
+      });
+    }
+  }
+  return [...merged.values()];
+}
 
 export function formatTriageSummary(
-  sweeps: TriageSweepResult[],
+  sweeps: PendingSweepResult[],
   verbose = false
 ): string {
   const accountsSwept = sweeps.length;
@@ -26,50 +68,43 @@ export function formatTriageSummary(
 
     const grouped = groupByAction(sweep.results);
 
-    // Todos created
     if (grouped.create_todo.length > 0) {
       for (const email of grouped.create_todo) {
-        const priority =
-          email.decision.priority === "high" ? " 🔴" : "";
-        lines.push(
-          `  ✅ Todo: "${email.message.subject}"${priority}`
-        );
+        const priority = email.priority === "high" ? " 🔴" : "";
+        lines.push(`  ✅ Todo: "${email.subject}"${priority}`);
       }
     }
 
-    // Notifications
     if (grouped.notify.length > 0) {
       for (const email of grouped.notify) {
         lines.push(
-          `  📬 ${extractSenderName(email.message.from)}: "${email.message.subject}"`
+          `  📬 ${extractSenderName(email.from)}: "${email.subject}"`
         );
       }
     }
 
-    // Trashed
     if (grouped.trash.length > 0) {
       if (verbose) {
         for (const email of grouped.trash) {
-          const tag = email.decision.source === "ai" ? " [AI]" : " [rule]";
+          const tag = email.source === "ai" ? " [AI]" : " [rule]";
           lines.push(
-            `  🗑 "${email.message.subject}" from ${extractSenderName(email.message.from)}${tag}`
+            `  🗑 "${email.subject}" from ${extractSenderName(email.from)}${tag}`
           );
         }
       } else {
         const senderSummary = deduplicateSenders(
-          grouped.trash.map((e) => extractSenderName(e.message.from))
+          grouped.trash.map((e) => extractSenderName(e.from))
         );
         lines.push(`  🗑 Trashed ${grouped.trash.length} (${senderSummary})`);
       }
     }
 
-    // Skipped
     if (grouped.skip.length > 0) {
       if (verbose) {
         for (const email of grouped.skip) {
-          const tag = email.decision.source === "ai" ? " [AI]" : " [rule]";
+          const tag = email.source === "ai" ? " [AI]" : " [rule]";
           lines.push(
-            `  ⏭ "${email.message.subject}" from ${extractSenderName(email.message.from)}${tag}`
+            `  ⏭ "${email.subject}" from ${extractSenderName(email.from)}${tag}`
           );
         }
       } else {
@@ -94,9 +129,9 @@ function deduplicateSenders(senders: string[]): string {
 }
 
 function groupByAction(
-  results: TriagedEmail[]
-): Record<string, TriagedEmail[]> {
-  const groups: Record<string, TriagedEmail[]> = {
+  results: PendingTriagedEmail[]
+): Record<string, PendingTriagedEmail[]> {
+  const groups: Record<string, PendingTriagedEmail[]> = {
     create_todo: [],
     notify: [],
     trash: [],
@@ -104,7 +139,7 @@ function groupByAction(
   };
 
   for (const result of results) {
-    const actions = result.decision.actions || [result.decision.action];
+    const actions = result.actions || [result.action];
     for (const action of actions) {
       if (groups[action]) {
         groups[action].push(result);

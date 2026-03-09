@@ -8,6 +8,7 @@ function env(key: string): string {
 
 export function loadConfig(): EmailConfig {
   return {
+    notifySchedule: "0 9,18 * * *", // 9am and 6pm daily
     accounts: {
       personal: {
         address: env("GMAIL_ADDRESS_PERSONAL"),
@@ -24,7 +25,7 @@ export function loadConfig(): EmailConfig {
       },
       work: {
         address: env("GMAIL_ADDRESS_WORK"),
-        schedule: "0 8,12,17 * * 1-5", // 8am, 12pm, 5pm weekdays
+        schedule: "0 8,9,10,11,12,13,14,15,16,17,18 * * 1-5", // hourly 8am-6pm weekdays
         allowDelete: true,
         rules: [
           { match: { from: "*noreply*" }, action: "trash" },
