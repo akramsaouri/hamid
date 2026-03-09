@@ -85,66 +85,31 @@ end run`;
 export async function getOpenReminders(list?: string): Promise<Reminder[]> {
   const listName = list ?? "Tasks";
 
-  // Batch `name of (every reminder)` is fast.
-  // `body of` errors when any reminder has missing value, so we fetch names only
-  // and use a separate call for search when body is needed.
-  const raw = await new Promise<string>((resolve, reject) => {
-    execFile(
-      "osascript",
-      ["-e", `tell application "Reminders" to tell list ${JSON.stringify(listName)} to return name of (every reminder whose completed is false)`],
-      { timeout: 15000 },
-      (err, stdout) => {
-        if (err) reject(new Error(`osascript failed: ${err.message}`));
-        else resolve(stdout.trim());
-      }
-    );
-  });
+  // Batch `name of (every reminder)` is fast (single Apple Event).
+  // Use a custom delimiter since names can contain commas.
+  const script = `tell application "Reminders"
+  tell list ${JSON.stringify(listName)}
+    set names_ to name of (every reminder whose completed is false)
+    set AppleScript's text item delimiters to "|||"
+    return names_ as text
+  end tell
+end tell`;
 
+  const raw = await runOsascript(script);
   if (!raw) return [];
 
   return raw
-    .split(", ")
+    .split("|||")
     .filter((n) => n.trim())
     .map((name) => ({ name: name.trim(), body: "", dueDate: "" }));
 }
 
 export async function searchReminders(query: string, list?: string): Promise<Reminder[]> {
-  const listName = list ?? "Tasks";
-
-  // Use AppleScript `whose name contains` for fast server-side filtering
-  // Then fetch bodies individually for matching reminders (smaller set)
-  const script = `on run argv
-  set q to item 1 of argv
-  tell application "Reminders"
-    tell list ${JSON.stringify(listName)}
-      set matches to every reminder whose completed is false and name contains q
-      set output to ""
-      repeat with r in matches
-        set rName to name of r
-        set rBody to ""
-        try
-          set rBody to body of r
-          if rBody is missing value then set rBody to ""
-        end try
-        set output to output & rName & "\\t" & rBody & "\\n"
-      end repeat
-      return output
-    end tell
-  end tell
-end run`;
-
-  const raw = await runOsascript(script, [query]);
-  if (!raw) return [];
-
-  return raw
-    .split("\n")
-    .filter((line) => line.includes("\t"))
-    .map((line) => {
-      const idx = line.indexOf("\t");
-      const name = line.slice(0, idx);
-      const body = line.slice(idx + 1);
-      return { name, body, dueDate: "" };
-    });
+  // Use the fast batch fetch, then filter client-side.
+  // Repeat loops in AppleScript are slow — client-side filtering is instant.
+  const all = await getOpenReminders(list);
+  const q = query.toLowerCase();
+  return all.filter((r) => r.name.toLowerCase().includes(q));
 }
 
 export async function completeReminder(name: string, list?: string): Promise<void> {
