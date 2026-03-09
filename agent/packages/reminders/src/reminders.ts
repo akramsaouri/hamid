@@ -50,8 +50,14 @@ export async function createReminder(input: CreateReminderInput): Promise<void> 
   const args = [input.name, input.body ?? "", String(priority)];
 
   if (input.dueDate) {
-    propsScript = `{name:reminderName, body:reminderBody, priority:reminderPriority, due date:date reminderDue}`;
-    args.push(formatAppleScriptDate(input.dueDate));
+    propsScript = `{name:reminderName, body:reminderBody, priority:reminderPriority, due date:reminderDue}`;
+    args.push(
+      String(input.dueDate.getFullYear()),
+      String(input.dueDate.getMonth() + 1),
+      String(input.dueDate.getDate()),
+      String(input.dueDate.getHours()),
+      String(input.dueDate.getMinutes()),
+    );
   }
 
   const script = input.dueDate
@@ -59,7 +65,20 @@ export async function createReminder(input: CreateReminderInput): Promise<void> 
   set reminderName to item 1 of argv
   set reminderBody to item 2 of argv
   set reminderPriority to (item 3 of argv) as integer
-  set reminderDue to item 4 of argv
+  set reminderYear to (item 4 of argv) as integer
+  set reminderMonth to (item 5 of argv) as integer
+  set reminderDay to (item 6 of argv) as integer
+  set reminderHour to (item 7 of argv) as integer
+  set reminderMinute to (item 8 of argv) as integer
+
+  -- Build date from components to avoid locale issues
+  set reminderDue to current date
+  set year of reminderDue to reminderYear
+  set month of reminderDue to reminderMonth
+  set day of reminderDue to reminderDay
+  set hours of reminderDue to reminderHour
+  set minutes of reminderDue to reminderMinute
+  set seconds of reminderDue to 0
 
   tell application "Reminders"
     tell list ${JSON.stringify(list)}
