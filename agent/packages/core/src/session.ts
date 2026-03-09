@@ -70,10 +70,6 @@ export function createHamidSession(options: HamidSessionOptions): HamidSession {
             NOTION_TOKEN: process.env.NOTION_TOKEN ?? "",
           },
         },
-        "apple-reminders": {
-          command: "node",
-          args: [join(workingDir, "tools/apple-reminders-mcp/dist/index.js")],
-        },
       },
       systemPrompt: promptText
         ? {

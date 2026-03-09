@@ -1,7 +1,7 @@
 import { writeFileSync } from "node:fs";
-import { execFile } from "node:child_process";
 import { join } from "node:path";
 import { createLogger, createHamidSession, WEEKLY_CHECKIN_PROMPT } from "@hamid/core";
+import { getOpenReminders } from "@hamid/reminders";
 import { loadConfig } from "./config.js";
 import { notify } from "./notify.js";
 import { resilientRun } from "./resilient.js";
@@ -64,25 +64,9 @@ async function fetchActiveGoals(notionToken: string): Promise<GoalInfo[] | "NO_A
 }
 
 async function fetchOpenReminders(): Promise<string> {
-  const raw = await new Promise<string>((resolve, reject) => {
-    execFile(
-      "osascript",
-      ["-e", 'tell application "Reminders" to tell list "Tasks" to return name of (every reminder whose completed is false)'],
-      { timeout: 15000 },
-      (err, stdout) => {
-        if (err) reject(new Error(`Failed to fetch reminders: ${err.message}`));
-        else resolve(stdout);
-      }
-    );
-  });
-
-  const reminders = raw
-    .trim()
-    .split(", ")
-    .filter((r) => r.trim())
-    .map((r) => `- ${r.trim()}`);
-
-  return reminders.length > 0 ? reminders.join("\n") : "None";
+  const reminders = await getOpenReminders();
+  if (reminders.length === 0) return "None";
+  return reminders.map((r) => `- ${r.name}`).join("\n");
 }
 
 await resilientRun("weekly-checkin", async () => {

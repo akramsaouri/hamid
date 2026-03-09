@@ -128,11 +128,11 @@ export function createBot(cfg: CommConfig): Bot {
     }
 
     const lines = [
-      `Model: ${model}`,
-      `Git: ${git}`,
-      `Up since: ${uptime}`,
-      `Sessions: ${sessions}`,
-      `Current: ${sessionStatus}`,
+      `🤖 Model: ${model}`,
+      `🌿 Git: ${git}`,
+      `⏱ Up since: ${uptime}`,
+      `💬 Sessions: ${sessions}`,
+      `📡 Current: ${sessionStatus}`,
     ];
 
     await ctx.reply(lines.join("\n"));

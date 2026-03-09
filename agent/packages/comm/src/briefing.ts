@@ -2,6 +2,7 @@ import { execSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { createHamidSession, BRIEFING_PROMPT } from "@hamid/core";
+import { fetchCalendarEvents } from "./calendar.js";
 
 const OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast";
 const LATITUDE = 59.52;
@@ -108,8 +109,9 @@ export function gatherMemory(workspaceDir: string): string {
 }
 
 export async function generateBriefing(workspaceDir: string): Promise<string> {
-  const [weather, health, memory] = await Promise.all([
+  const [weather, calendar, health, memory] = await Promise.all([
     fetchWeather(),
+    fetchCalendarEvents(join(workspaceDir, "agent")),
     Promise.resolve(checkHealth(workspaceDir)),
     Promise.resolve(gatherMemory(workspaceDir)),
   ]);
@@ -117,6 +119,9 @@ export async function generateBriefing(workspaceDir: string): Promise<string> {
   const rawData = [
     "=== WEATHER DATA ===",
     weather,
+    "",
+    "=== CALENDAR (today) ===",
+    calendar,
     "",
     "=== SERVICE HEALTH ===",
     health,

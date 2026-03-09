@@ -13,12 +13,17 @@ vi.mock("node:fs", () => ({
 }));
 
 vi.mock("@hamid/core", () => ({
+  BRIEFING_PROMPT: "mock briefing prompt",
   createHamidSession: vi.fn(() => ({
     send: async function* () {
       yield { type: "result", content: "Morning, Sat. It's cold.", sessionId: "test-123" };
     },
     sessionId: "test-123",
   })),
+}));
+
+vi.mock("../src/calendar.js", () => ({
+  fetchCalendarEvents: vi.fn().mockResolvedValue("09:00 - 10:00  Team standup\n14:00 - 15:00  Design review"),
 }));
 
 describe("fetchWeather", () => {
