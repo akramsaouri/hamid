@@ -12,6 +12,8 @@ agent/packages/core/src/prompts.ts
 
 memory/*
 !memory/.gitkeep
+research/*
+!research/.gitkeep
 reports/*
 !reports/.gitkeep
 docs/plans/*
