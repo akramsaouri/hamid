@@ -2,7 +2,7 @@ import { Bot } from "grammy";
 import { execSync } from "node:child_process";
 import { existsSync, readFileSync, unlinkSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { createHamidSession, createLogger, goalReviewPrompt, type PermissionDecision } from "@hamid/core";
+import { createHamidSession, createLogger, goalReviewPrompt, type PermissionDecision, type Effort } from "@hamid/core";
 import { TelegramRenderer } from "./renderer.js";
 import { loadState, saveState, isSessionExpired, type DaemonState } from "./state.js";
 import type { CommConfig } from "./config.js";
@@ -54,6 +54,8 @@ function getGoalReviewPrompt(workspaceDir: string): string | undefined {
 export function createBot(cfg: CommConfig): Bot {
   const bot = new Bot(cfg.telegramBotToken);
   const state: DaemonState = loadState();
+  const VALID_EFFORTS: Effort[] = ["low", "medium", "high", "max"];
+  let nextEffort: Effort | undefined;
 
   // Map of pending permission requests: id -> resolve function
   const pendingPermissions = new Map<
@@ -351,6 +353,20 @@ export function createBot(cfg: CommConfig): Bot {
     })();
   });
 
+  // /think command — set effort level for next message
+  bot.command("think", async (ctx) => {
+    if (String(ctx.chat.id) !== cfg.telegramChatId) return;
+    const arg = ctx.match?.trim().toLowerCase() as Effort;
+    if (!arg || !VALID_EFFORTS.includes(arg)) {
+      const current = nextEffort ? `Current: ${nextEffort} (next message only)` : "No override set.";
+      await ctx.reply(`${current}\nUsage: /think low|medium|high|max`);
+      return;
+    }
+    nextEffort = arg;
+    log.info(`Effort set to ${arg} for next message`);
+    await ctx.reply(`Next message will use ${arg} effort.`);
+  });
+
   // /start command — greeting
   bot.command("start", async (ctx) => {
     if (String(ctx.chat.id) !== cfg.telegramChatId) return;
@@ -367,7 +383,12 @@ export function createBot(cfg: CommConfig): Bot {
       state.sessionCount++;
       saveState(state);
     }
-    log.info(`Message: "${text.slice(0, 80)}" (${resuming ? `resume:${state.sessionId}` : "new session"})`);
+
+    // Consume one-shot effort override
+    const effort = nextEffort;
+    nextEffort = undefined;
+
+    log.info(`Message: "${text.slice(0, 80)}" (${resuming ? `resume:${state.sessionId}` : "new session"}${effort ? `, effort:${effort}` : ""})`);
 
     const renderer = new TelegramRenderer(bot, cfg.telegramChatId);
 
@@ -381,6 +402,7 @@ export function createBot(cfg: CommConfig): Bot {
         ...(goalReviewPrompt && { systemPrompt: goalReviewPrompt }),
         sessionId: state.sessionId ?? undefined,
         permissionLogPath: join(cfg.workspaceDir, "logs", "permissions.jsonl"),
+        ...(effort && { effort }),
         onPermissionRequest: async (request) => {
           log.info(`Permission request: ${request.toolName}${request.isDestructive ? " (destructive)" : ""}`);
           return new Promise<PermissionDecision>((resolve) => {

@@ -58,6 +58,7 @@ export function createHamidSession(options: HamidSessionOptions): HamidSession {
       cwd: workingDir,
       env: cleanEnv,
       includePartialMessages: true,
+      ...(options.effort && { effort: options.effort }),
       mcpServers: {
         playwright: {
           command: "npx",

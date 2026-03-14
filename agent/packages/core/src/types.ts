@@ -1,3 +1,5 @@
+export type Effort = "low" | "medium" | "high" | "max";
+
 export interface HamidSessionOptions {
   /** Absolute path to workspace root (where SOUL.md, memory/, etc. live) */
   workingDir: string;
@@ -9,6 +11,8 @@ export interface HamidSessionOptions {
   systemPrompt?: string;
   /** Path to JSONL file for logging permission checks */
   permissionLogPath?: string;
+  /** Effort level for reasoning depth (omit for SDK default) */
+  effort?: Effort;
 }
 
 export interface PermissionRequest {

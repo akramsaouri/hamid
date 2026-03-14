@@ -14,6 +14,7 @@ export {
   WEEKLY_CHECKIN_PROMPT,
 } from "./prompts.js";
 export type {
+  Effort,
   HamidEvent,
   HamidSession,
   HamidSessionOptions,
