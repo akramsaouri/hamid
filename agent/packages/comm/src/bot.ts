@@ -138,6 +138,65 @@ export function createBot(cfg: CommConfig): Bot {
     await ctx.reply(lines.join("\n"));
   });
 
+  // /services command — launchd service health
+  bot.command("services", async (ctx) => {
+    if (String(ctx.chat.id) !== cfg.telegramChatId) return;
+
+    const services = [
+      { label: "com.hamid.telegram", name: "telegram" },
+      { label: "com.hamid.email-triage", name: "email-triage" },
+      { label: "com.hamid.briefing", name: "briefing" },
+      { label: "com.hamid.todo-review", name: "todo-review" },
+      { label: "com.hamid.memory-hygiene", name: "memory-hygiene" },
+      { label: "com.hamid.permission-hygiene", name: "perm-hygiene" },
+      { label: "com.hamid.weekly-checkin", name: "weekly-checkin" },
+    ];
+
+    const rows: string[] = [];
+
+    for (const svc of services) {
+      let icon: string;
+      let detail: string;
+      try {
+        const out = execSync(`launchctl list ${svc.label}`, { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] });
+        const pidMatch = out.match(/"PID"\s*=\s*(\d+)/);
+        const exitMatch = out.match(/"LastExitStatus"\s*=\s*(\d+)/);
+        const pid = pidMatch?.[1];
+        const exitCode = exitMatch ? parseInt(exitMatch[1], 10) : 0;
+
+        if (pid) {
+          icon = "✅";
+          detail = `running \\(PID ${pid}\\)`;
+        } else if (exitCode === 0) {
+          icon = "✅";
+          detail = "exit 0";
+        } else {
+          icon = "❌";
+          detail = `exit ${exitCode}`;
+        }
+      } catch {
+        icon = "⚫";
+        detail = "not loaded";
+      }
+
+      // Check last log activity
+      const logName = svc.name === "perm-hygiene" ? "permission-hygiene" : svc.name;
+      const logPath = join(cfg.workspaceDir, "logs", `${logName}-stdout.log`);
+      try {
+        const mtime = parseInt(execSync(`stat -f %m "${logPath}"`, { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }).trim(), 10);
+        const ago = formatDuration(Date.now() - mtime * 1000);
+        detail += ` \\(${ago} ago\\)`;
+      } catch {
+        // no log file
+      }
+
+      rows.push(`${icon} \`${svc.name}\` — ${detail}`);
+    }
+
+    const msg = `🔧 *Services*\n\n${rows.join("\n")}`;
+    await ctx.reply(msg, { parse_mode: "MarkdownV2" });
+  });
+
   // /briefing command — generate and send daily briefing
   bot.command("briefing", async (ctx) => {
     if (String(ctx.chat.id) !== cfg.telegramChatId) return;
