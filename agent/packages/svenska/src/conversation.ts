@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { createHamidSession } from "@hamid/core";
 import { buildSystemPrompt, buildSummaryPrompt } from "./prompt.js";
 import type { Scenario, ConversationResponse, Message } from "./types.js";
@@ -6,12 +7,24 @@ interface ConversationState {
   scenario: Scenario;
   messages: Message[];
   totalCorrections: number;
+  lastActivity: number;
 }
 
 const conversations = new Map<string, ConversationState>();
 
+// Cleanup inactive conversations every 30 minutes
+setInterval(() => {
+  const now = Date.now();
+  const timeout = 2 * 60 * 60 * 1000; // 2 hours
+  for (const [id, state] of conversations) {
+    if (now - state.lastActivity > timeout) {
+      conversations.delete(id);
+    }
+  }
+}, 30 * 60 * 1000);
+
 function generateId(): string {
-  return Math.random().toString(36).slice(2, 10);
+  return randomBytes(16).toString("hex");
 }
 
 export function startConversation(scenario: Scenario): {
@@ -27,6 +40,7 @@ export function startConversation(scenario: Scenario): {
     scenario,
     messages: [systemMessage],
     totalCorrections: 0,
+    lastActivity: Date.now(),
   });
   return { conversationId: id, firstMessage: systemMessage };
 }
@@ -85,6 +99,7 @@ export async function sendMessage(
     positive: parsed.positive,
   });
   state.totalCorrections += parsed.corrections.length;
+  state.lastActivity = Date.now();
 
   return parsed;
 }

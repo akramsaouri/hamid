@@ -46,16 +46,21 @@ export async function startServer(config: ServerConfig) {
 
   app.post<{ Body: { scenarioId: string } }>(
     "/api/conversation/start",
-    async (req) => {
+    async (req, reply) => {
       const scenario = scenarios.find((s) => s.id === req.body.scenarioId);
-      if (!scenario) throw new Error("Scenario not found");
+      if (!scenario) {
+        return reply.status(404).send({ error: "Scenario not found" });
+      }
       return startConversation(scenario);
     }
   );
 
   app.post<{ Body: { conversationId: string; message: string } }>(
     "/api/conversation/message",
-    async (req) => {
+    async (req, reply) => {
+      if (!req.body.message || typeof req.body.message !== "string" || req.body.message.trim() === "") {
+        return reply.status(400).send({ error: "Message must be a non-empty string" });
+      }
       return sendMessage(
         req.body.conversationId,
         req.body.message,
