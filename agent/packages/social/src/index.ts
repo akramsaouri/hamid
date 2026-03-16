@@ -16,3 +16,4 @@ export type {
   GeneratedTweet,
 } from "./types.js";
 export { loadState, saveState, pruneState, recordSnapshot, defaultState } from "./state.js";
+export { loadConfig, loadRedditCredentials, loadTwitterCredentials } from "./config.js";
