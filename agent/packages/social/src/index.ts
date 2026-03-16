@@ -15,3 +15,4 @@ export type {
   SocialState,
   GeneratedTweet,
 } from "./types.js";
+export { loadState, saveState, pruneState, recordSnapshot, defaultState } from "./state.js";
