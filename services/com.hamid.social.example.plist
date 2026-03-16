@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Service identifier — must match the filename -->
+    <key>Label</key>
+    <string>com.hamid.social</string>
+
+    <!-- Node.js path (output of `which node`) and entry point -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>$HOME/.local/share/fnm/node-versions/v24.x.x/installation/bin/node</string>
+        <string>$HOME/hamid/agent/packages/social/dist/scan-cli.js</string>
+    </array>
+
+    <!-- Working directory — must be the root of your hamid clone -->
+    <key>WorkingDirectory</key>
+    <string>$HOME/hamid</string>
+
+    <!-- Run 3x/day: 8am, 12pm, 4pm -->
+    <key>StartCalendarInterval</key>
+    <array>
+        <dict>
+            <key>Hour</key>
+            <integer>8</integer>
+            <key>Minute</key>
+            <integer>0</integer>
+        </dict>
+        <dict>
+            <key>Hour</key>
+            <integer>12</integer>
+            <key>Minute</key>
+            <integer>0</integer>
+        </dict>
+        <dict>
+            <key>Hour</key>
+            <integer>16</integer>
+            <key>Minute</key>
+            <integer>0</integer>
+        </dict>
+    </array>
+
+    <!-- Log paths -->
+    <key>StandardOutPath</key>
+    <string>$HOME/hamid/logs/social-stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>$HOME/hamid/logs/social-stderr.log</string>
+
+    <!-- Environment variables -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <!-- PATH must include node and standard bins -->
+        <key>PATH</key>
+        <string>$HOME/.local/share/fnm/node-versions/v24.x.x/installation/bin:/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
+    </dict>
+</dict>
+</plist>
