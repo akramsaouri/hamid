@@ -101,6 +101,52 @@ export function createBot(cfg: CommConfig): Bot {
     await ctx.answerCallbackQuery();
   });
 
+  // Social approval callbacks (approve/skip)
+  bot.on("callback_query:data", async (ctx) => {
+    const data = ctx.callbackQuery.data;
+    if (!data.startsWith("social:")) return;
+
+    try {
+      const agentDir = resolve(cfg.workspaceDir, "agent");
+      const socialPath = resolve(agentDir, "packages/social/dist/index.js");
+      const statePath = resolve(agentDir, "packages/social/dist/state.js");
+      const configPath = resolve(agentDir, "packages/social/dist/config.js");
+
+      const { handleSocialCallback } = (await import(socialPath)) as {
+        handleSocialCallback: (
+          data: string,
+          state: unknown,
+          agentDir: string,
+          creds: unknown,
+        ) => Promise<{ responseText: string; success: boolean }>;
+      };
+      const { loadState } = (await import(statePath)) as {
+        loadState: (dir: string) => unknown;
+      };
+      const { loadRedditCredentials, loadTwitterCredentials } = (await import(configPath)) as {
+        loadRedditCredentials: () => unknown;
+        loadTwitterCredentials: () => unknown;
+      };
+
+      const state = loadState(agentDir);
+      const creds = {
+        reddit: loadRedditCredentials(),
+        twitter: loadTwitterCredentials(),
+      };
+
+      const result = await handleSocialCallback(data, state, agentDir, creds);
+
+      await ctx.editMessageText(
+        `${ctx.callbackQuery.message?.text}\n\n${result.responseText}`,
+      );
+      await ctx.answerCallbackQuery();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      log.info(`Social callback error: ${msg}`);
+      await ctx.answerCallbackQuery({ text: "Error processing" });
+    }
+  });
+
   // /new command — fresh session
   bot.command("new", async (ctx) => {
     if (String(ctx.chat.id) !== cfg.telegramChatId) return;
@@ -371,6 +417,89 @@ export function createBot(cfg: CommConfig): Bot {
   bot.command("start", async (ctx) => {
     if (String(ctx.chat.id) !== cfg.telegramChatId) return;
     await ctx.reply("Hamid is here. Send me anything.");
+  });
+
+  bot.command("social", async (ctx) => {
+    if (String(ctx.chat.id) !== cfg.telegramChatId) return;
+
+    const subcommand = ctx.match?.trim();
+    const agentDir = resolve(cfg.workspaceDir, "agent");
+
+    // /social stats — show current week's engagement
+    if (subcommand === "stats") {
+      try {
+        const statePath = resolve(agentDir, "packages/social/dist/state.js");
+        const summaryPath = resolve(agentDir, "packages/social/dist/summary.js");
+        const { loadState } = (await import(statePath)) as {
+          loadState: (dir: string) => unknown;
+        };
+        const { formatWeeklyDigest } = (await import(summaryPath)) as {
+          formatWeeklyDigest: (state: unknown) => string;
+        };
+        const state = loadState(agentDir);
+        await ctx.reply(formatWeeklyDigest(state) || "No stats yet.");
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        await ctx.reply(`Stats error: ${msg}`);
+      }
+      return;
+    }
+
+    // /social queue — show pending items
+    if (subcommand === "queue") {
+      try {
+        const statePath = resolve(agentDir, "packages/social/dist/state.js");
+        const queuePath = resolve(agentDir, "packages/social/dist/queue.js");
+        const { loadState } = (await import(statePath)) as {
+          loadState: (dir: string) => unknown;
+        };
+        const { getPendingDrafts } = (await import(queuePath)) as {
+          getPendingDrafts: (state: unknown) => Array<{ id: string; subreddit: string; threadTitle: string }>;
+        };
+        const state = loadState(agentDir);
+        const pending = getPendingDrafts(state);
+        if (pending.length === 0) {
+          await ctx.reply("No pending drafts.");
+        } else {
+          const lines = pending.map(
+            (d, i) => `${i + 1}. r/${d.subreddit}: "${d.threadTitle}"`,
+          );
+          await ctx.reply(`${pending.length} pending:\n${lines.join("\n")}`);
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        await ctx.reply(`Queue error: ${msg}`);
+      }
+      return;
+    }
+
+    // /social (no subcommand) — force scan
+    const statusMsg = await ctx.reply("Running social scan...");
+    (async () => {
+      try {
+        const { execFileSync } = await import("node:child_process");
+        const cliPath = resolve(agentDir, "packages/social/dist/scan-cli.js");
+        const nodeExec = process.execPath;
+        const result = execFileSync(nodeExec, [cliPath, "--force"], {
+          cwd: cfg.workspaceDir,
+          timeout: 120_000,
+          encoding: "utf-8",
+          env: { ...process.env },
+        });
+        await bot.api.editMessageText(
+          cfg.telegramChatId,
+          statusMsg.message_id,
+          result.trim() || "Scan complete.",
+        );
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        await bot.api.editMessageText(
+          cfg.telegramChatId,
+          statusMsg.message_id,
+          `Social scan failed: ${msg}`,
+        );
+      }
+    })();
   });
 
   // Send a message to Claude — shared by text and voice handlers.
