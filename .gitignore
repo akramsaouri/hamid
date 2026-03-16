@@ -24,3 +24,5 @@ services/*.plist
 .claude/skills/niche-research/
 .claude/skills/project-patrol/
 .worktrees/
+.svenska-sessions.json
+agent/packages/svenska/frontend/dist/
