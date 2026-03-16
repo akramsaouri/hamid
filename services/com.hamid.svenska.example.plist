@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.hamid.svenska</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/YOUR_USERNAME/.local/share/fnm/node-versions/YOUR_NODE_VERSION/installation/bin/node</string>
+        <string>/Users/YOUR_USERNAME/code/personal/hamid/agent/packages/svenska/dist/index.js</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/YOUR_USERNAME/code/personal/hamid</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/YOUR_USERNAME/code/personal/hamid/logs/svenska-stdout.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/YOUR_USERNAME/code/personal/hamid/logs/svenska-stderr.log</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>HOME</key>
+        <string>/Users/YOUR_USERNAME</string>
+        <key>PATH</key>
+        <string>/Users/YOUR_USERNAME/.local/share/fnm/node-versions/YOUR_NODE_VERSION/installation/bin:/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
+        <key>CLAUDE_CODE_USE_VERTEX</key>
+        <string>1</string>
+        <key>CLOUD_ML_REGION</key>
+        <string>europe-west1</string>
+        <key>ANTHROPIC_VERTEX_PROJECT_ID</key>
+        <string>YOUR_GCP_PROJECT_ID</string>
+        <key>VERTEX_REGION_CLAUDE_4_1_OPUS</key>
+        <string>global</string>
+    </dict>
+</dict>
+</plist>
