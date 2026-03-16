@@ -17,6 +17,7 @@ research/*
 reports/*
 !reports/.gitkeep
 docs/plans/*
+docs/superpowers/*
 !docs/plans/.gitkeep
 services/*.plist
 !services/*.example.plist
