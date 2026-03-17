@@ -31,8 +31,10 @@ async function main() {
 
   const missed = getConsecutiveMissedDays(sessionsFile);
   const message = getNudgeMessage(missed);
+  const appUrl = process.env.SVENSKA_APP_URL;
+  const link = appUrl ? `\n\n[Öppna appen](${appUrl})` : "";
 
-  await notify(token, chatId, `🇸🇪 *Svenska med Hamid*\n\n${message}`);
+  await notify(token, chatId, `🇸🇪 *Svenska med Hamid*\n\n${message}${link}`);
   console.log(`Nudge sent (${missed} day(s) missed)`);
 }
 

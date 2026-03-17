@@ -198,6 +198,8 @@ export function createBot(cfg: CommConfig): Bot {
       { label: "com.hamid.memory-hygiene", name: "memory-hygiene" },
       { label: "com.hamid.permission-hygiene", name: "perm-hygiene" },
       { label: "com.hamid.weekly-checkin", name: "weekly-checkin" },
+      { label: "com.hamid.svenska", name: "svenska" },
+      { label: "com.hamid.svenska-nudge", name: "svenska-nudge" },
     ];
 
     const rows: string[] = [];
