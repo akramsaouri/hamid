@@ -1,6 +1,6 @@
 ---
 name: wrap-up
-description: Wrap up the current session: commit, push, and write memory.
+description: "Wrap up the current session: commit, push, and write memory."
 user_invocable: true
 ---
 
