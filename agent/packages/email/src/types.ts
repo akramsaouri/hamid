@@ -27,7 +27,7 @@ export type Priority = "high" | "medium" | "low";
 
 export interface EmailRule {
   match: EmailMatch;
-  action: EmailAction;
+  action?: EmailAction; // omit action to passthrough to AI judge
   actions?: EmailAction[]; // multiple actions for one rule
   priority?: Priority;
 }

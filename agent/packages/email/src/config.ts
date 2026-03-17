@@ -15,8 +15,6 @@ export function loadConfig(): EmailConfig {
         schedule: "0 8,9,10,11,12,13,14,15,16,17,18 * * *", // every hour 8am-6pm daily
         allowDelete: true,
         rules: [
-          { match: { from: "*noreply*" }, action: "trash" },
-          { match: { from: "*no-reply*" }, action: "trash" },
           { match: { from: "*@marketing.*" }, action: "trash" },
           { match: { from: "*newsletter*" }, action: "trash" },
           { match: { from: "*promo*" }, action: "trash" },
@@ -28,6 +26,7 @@ export function loadConfig(): EmailConfig {
         schedule: "0 8,9,10,11,12,13,14,15,16,17,18 * * 1-5", // hourly 8am-6pm weekdays
         allowDelete: true,
         rules: [
+          { match: { from: "*@github.schibsted.io" } }, // passthrough → AI judge
           { match: { from: "*noreply*" }, action: "trash" },
           { match: { from: "*no-reply*" }, action: "trash" },
           { match: { from: "*@marketing.*" }, action: "trash" },
@@ -39,8 +38,6 @@ export function loadConfig(): EmailConfig {
         schedule: "0 9,13,17 * * *", // 9am, 1pm, 5pm daily
         allowDelete: true,
         rules: [
-          { match: { from: "*noreply*" }, action: "trash" },
-          { match: { from: "*no-reply*" }, action: "trash" },
           { match: { from: "*@marketing.*" }, action: "trash" },
         ],
       },

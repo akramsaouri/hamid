@@ -33,7 +33,10 @@ export function evaluateRules(
   for (const rule of account.rules) {
     if (!matchRule(message, rule)) continue;
 
-    let action = rule.action;
+    // Passthrough: rule with no action means "skip rules, send to AI judge"
+    if (!rule.action && !rule.actions) return null;
+
+    let action = rule.action!;
     let actions = rule.actions;
 
     // Downgrade trash to skip if account disallows deletion

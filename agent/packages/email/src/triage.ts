@@ -90,6 +90,7 @@ async function sweepAccount(
     const gmail = new GmailClient(auth, account.address);
 
     const messages = await gmail.fetchUnread();
+    const createdTodoKeys = new Set<string>();
 
     for (const message of messages) {
       try {
@@ -104,6 +105,22 @@ async function sweepAccount(
           );
         }
 
+        // Deduplicate todos for the same PR/project within a sweep
+        const actions = decision.actions || [decision.action];
+        if (actions.includes("create_todo")) {
+          const dedupKey = extractDedupKey(message);
+          if (dedupKey && createdTodoKeys.has(dedupKey)) {
+            decision = {
+              ...decision,
+              action: "skip",
+              actions: undefined,
+              reason: `Deduped: ${decision.reason}`,
+            };
+          } else if (dedupKey) {
+            createdTodoKeys.add(dedupKey);
+          }
+        }
+
         const triaged: TriagedEmail = {
           message,
           account: accountName,
@@ -111,8 +128,8 @@ async function sweepAccount(
         };
 
         if (!dryRun) {
-          const actions = decision.actions || [decision.action];
-          for (const action of actions) {
+          const finalActions = decision.actions || [decision.action];
+          for (const action of finalActions) {
             await executeAction(action, gmail, message, triaged);
           }
         }
@@ -164,4 +181,16 @@ async function executeAction(
       await gmail.markAsRead(message.id);
       break;
   }
+}
+
+function extractDedupKey(message: GmailMessage): string | null {
+  // GitHub: "[owner/repo] Title (#123)"
+  const ghMatch = message.subject.match(/\[([^\]]+)\].*#(\d+)/);
+  if (ghMatch) return `${ghMatch[1]}#${ghMatch[2]}`;
+
+  // Vercel: "Deployment failed for <project>"
+  const vercelMatch = message.subject.match(/Deployment.*for\s+(\S+)/i);
+  if (vercelMatch) return `vercel:${vercelMatch[1]}`;
+
+  return null;
 }
